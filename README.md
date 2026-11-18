@@ -22,7 +22,9 @@ Todo funciona desde un solo archivo, `index.html`, de unos 656 KB. No necesita i
 
 ## Accesibilidad y baja conectividad
 
-- Lectura en voz alta, tamaño de letra, alto contraste y opción para detener el movimiento. Respeta la preferencia «reducir movimiento» del sistema.
+- Voz con personajes: el Sol, la Tierra y la Luna hablan en primera persona, cada uno con su tono, y una voz guía lee las preguntas. Cada oración y cada opción se resalta mientras suena. En ⚙️ Ajustes se elige la voz del equipo y la velocidad, y se pueden apagar los personajes y los efectos de sonido. Usa las voces del dispositivo (Web Speech API), así que funciona sin internet.
+- Efectos de sonido sintetizados en el navegador (Web Audio), sin archivos de audio.
+- Tamaño de letra, alto contraste y opción para detener el movimiento. Respeta la preferencia «reducir movimiento» del sistema.
 - Botones de al menos 48 px como alternativa a todos los gestos; funciona con teclado y lector de pantalla.
 - Modo ligero y vista 2D para equipos lentos o sin 3D.
 - Plan C sin dispositivos (linterna, pelota y plastilina), descrito en la Guía docente.

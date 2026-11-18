@@ -78,6 +78,16 @@ input[type=range]{width:100%;height:44px;accent-color:var(--sun2)}
 .steps{padding-left:1.2rem;line-height:1.6}
 .warn{background:#fff1e0;border-left:6px solid var(--sun2);padding:.55rem .7rem;border-radius:10px;font-size:.88rem}
 .tiny{font-size:.78rem;color:var(--muted)}
+.sent{border-radius:6px;transition:background .15s}
+.sent.reading,.opts button.reading{background:#ffe08a;box-shadow:0 0 0 3px #ffe08a;color:#1b2440}
+.opts button.reading{border-color:var(--sun2)}
+#voicePanel{position:fixed;top:64px;right:10px;width:min(360px,94vw);max-height:80vh;overflow:auto;z-index:200;background:var(--panel);color:var(--ink);border:3px solid var(--sun);border-radius:var(--r);padding:1rem;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+#voicePanel h3{margin:0 0 .5rem}
+#voicePanel select{width:100%;min-height:48px;font:inherit;border-radius:12px;border:2px solid var(--line);padding:.3rem;background:#fff;color:#1b2440}
+.seg{display:flex;gap:.3rem;margin:.3rem 0 .6rem}.seg button{flex:1;font-size:.85rem;border:2px solid var(--line);box-shadow:none}
+.seg button[aria-pressed="true"]{background:var(--sun);border-color:var(--sun2)}
+.chk{display:flex;gap:.5rem;align-items:flex-start;margin:.5rem 0;font-size:.9rem;cursor:pointer}.chk input{width:22px;height:22px;flex:0 0 auto;accent-color:var(--sun2)}
+body.hc .sent.reading,body.hc .opts button.reading{background:#ffe600;color:#000;box-shadow:0 0 0 3px #ffe600}
 .primary{background:var(--sun);}
 /* stage overlays */
 .ui{position:absolute;z-index:5}
@@ -132,6 +142,7 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
   <div class="brand"><span class="logo" aria-hidden="true">🌞🌍🌙</span><div><h1>Sol, Tierra y Luna</h1><p>Experiencia de RA/RV · Ciencias Naturales · 3.º EGB</p></div></div>
   <div class="a11y" role="toolbar" aria-label="Opciones de accesibilidad">
     <button id="bSpeak" aria-pressed="true" title="Leer en voz alta">🔊 <span>Voz</span></button>
+    <button id="bVoiceCfg" aria-expanded="false" aria-controls="voicePanel" title="Ajustes de voz">⚙️ <span>Ajustes</span></button>
     <button id="bMinus" title="Letra más pequeña" aria-label="Letra más pequeña">A−</button>
     <button id="bPlus" title="Letra más grande" aria-label="Letra más grande">A+</button>
     <button id="bHc" aria-pressed="false" title="Alto contraste">◐ <span>Contraste</span></button>
@@ -139,6 +150,17 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
     <button id="bLite" aria-pressed="false" title="Modo ligero para equipos lentos">🪶 <span>Ligero</span></button>
   </div>
 </header>
+<div id="voicePanel" role="dialog" aria-label="Ajustes de voz" hidden>
+  <h3>🔊 Ajustes de voz</h3>
+  <label class="lbl" for="vSel">Voz del equipo</label>
+  <select id="vSel"></select>
+  <p class="tiny" id="vHint"></p>
+  <div class="lbl">Velocidad</div>
+  <div class="seg" role="group" aria-label="Velocidad"><button data-rate=".8">🐢 Lenta</button><button data-rate="1">Normal</button><button data-rate="1.15">🐇 Rápida</button></div>
+  <label class="chk"><input type="checkbox" id="vChars"> Voces de personajes: el Sol, la Tierra y la Luna hablan con su propio tono</label>
+  <label class="chk"><input type="checkbox" id="vSfx"> Efectos de sonido</label>
+  <div class="row"><button id="vTest" class="primary">▶ Probar</button><button id="vClose">Cerrar</button></div>
+</div>
 <nav class="tabs" role="tablist" aria-label="Actividades">
   <button class="tab" role="tab" data-mode="explorar" aria-selected="true">🔭 Explorar</button>
   <button class="tab" role="tab" data-mode="dianoche" aria-selected="false">🌗 Día y noche</button>
@@ -263,7 +285,7 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
 
       <h3>Accesibilidad e inclusión</h3>
       <ul>
-        <li><b>🔊 Voz:</b> todos los textos, preguntas y datos se leen en voz alta con la voz del propio equipo, que funciona sin internet si el celular ya tiene una voz en español instalada.</li>
+        <li><b>🔊 Voz con personajes:</b> el Sol, la Tierra y la Luna hablan en primera persona, cada uno con su propio tono, y una voz guía lee las preguntas. Cada oración y cada opción de respuesta se resalta mientras suena, para que los niños sigan la lectura. Usa las voces en español del propio equipo, así que funciona sin internet si el celular ya tiene una instalada. En <b>⚙️ Ajustes</b> se elige la voz más natural del equipo y la velocidad (lenta, normal o rápida), y se pueden apagar los personajes o los efectos de sonido.</li>
         <li><b>A− / A+</b> para el tamaño de letra, <b>◐ Contraste</b> para baja visión y <b>⏸ Quieto</b> para quienes se distraen o se marean con el movimiento. La app respeta la opción del sistema «reducir movimiento».</li>
         <li>Todo lo que se hace tocando la escena 3D también se puede hacer con <b>botones grandes</b> (mínimo 48 px), con teclado y con lector de pantalla.</li>
         <li><b>Lectura fácil:</b> frases cortas, una idea por oración y apoyo con pictogramas (emojis).</li>
@@ -308,45 +330,92 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const TAU=Math.PI*2, D2R=Math.PI/180;
-const S={mode:'explorar',speak:true,reduce:false,lite:false,hc:false,fs:18,paused:false,view2d:false};
+const S={mode:'explorar',speak:true,reduce:false,lite:false,hc:false,fs:18,paused:false,view2d:false,rate:1,chars:true,sfx:true,voiceName:''};
 try{ S.reduce=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
 try{ const p=JSON.parse(localStorage.getItem('stl_prefs')||'{}'); Object.assign(S,p); }catch(e){}
-function savePrefs(){ try{ localStorage.setItem('stl_prefs',JSON.stringify({speak:S.speak,reduce:S.reduce,lite:S.lite,hc:S.hc,fs:S.fs})); }catch(e){} }
+function savePrefs(){ try{ localStorage.setItem('stl_prefs',JSON.stringify({speak:S.speak,reduce:S.reduce,lite:S.lite,hc:S.hc,fs:S.fs,rate:S.rate,chars:S.chars,sfx:S.sfx,voiceName:S.voiceName})); }catch(e){} }
 
 /* ---------- VOZ ---------- */
-let voice=null;
-function pickVoice(){ try{ const vs=speechSynthesis.getVoices(); const pref=['es-ec','es-419','es-us','es-mx','es-co','es-pe','es-es'];
-  for(const p of pref){ const v=vs.find(v=>(v.lang||'').replace('_','-').toLowerCase()===p); if(v){voice=v;return;} }
-  voice=vs.find(v=>(v.lang||'').toLowerCase().startsWith('es'))||null; }catch(e){} }
-if('speechSynthesis' in window){ pickVoice(); try{ speechSynthesis.onvoiceschanged=pickVoice; }catch(e){} }
-function say(t,force){
-  $('#live').textContent=t;
-  if(!(S.speak||force)) return;
-  try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}]/gu,''));
-    u.lang=voice?voice.lang:'es-ES'; if(voice) u.voice=voice; u.rate=.9; u.pitch=1.05; speechSynthesis.speak(u);
-  }catch(e){}
+// Cada personaje habla con su propio tono y ritmo usando la voz en español del equipo (sin internet).
+const VOICES={guia:{pitch:1.08,rate:.98},sol:{pitch:.78,rate:.92},tierra:{pitch:1.12,rate:1},luna:{pitch:1.38,rate:.9}};
+let voices=[], voice=null;
+function scoreVoice(v){ const l=(v.lang||'').replace('_','-').toLowerCase(), n=(v.name||'').toLowerCase(); if(!l.startsWith('es')) return -1;
+  let sc=10; if(/es-(ec|419|us|mx|co|pe|cl|ar|ve)/.test(l)) sc+=3; else if(l==='es-es') sc+=1;
+  if(/natural|neural|online|premium|enhanced|mejorad|google|siri|paulina|dalia|sabina|elena|monica|mónica/.test(n)) sc+=5;
+  if(/espeak|compact|robot/.test(n)) sc-=8; if(v.localService) sc+=1; return sc; }
+function loadVoices(){ try{ voices=speechSynthesis.getVoices().filter(v=>scoreVoice(v)>=0).sort((a,b)=>scoreVoice(b)-scoreVoice(a)); }catch(e){ voices=[]; }
+  voice=voices.find(v=>v.name===S.voiceName)||voices[0]||null; if(typeof fillVoiceUI==='function') fillVoiceUI(); }
+if('speechSynthesis' in window){ loadVoices(); try{ speechSynthesis.addEventListener('voiceschanged',loadVoices); }catch(e){ speechSynthesis.onvoiceschanged=loadVoices; } }
+function clean(t){ return t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}\u{2B50}\u{200D}]/gu,'').replace(/\s+/g,' ').trim(); }
+function splitSent(t){ return (t.match(/[^.!?…]+[.!?…]*\s*/g)||[t]).map(x=>x.trim()).filter(Boolean); }
+let sayId=0;
+/* say(texto | [{text, who, hl}], {el, force})
+   - who: guia | sol | tierra | luna  → voz del personaje
+   - el: el texto se pinta ahí, oración por oración, y se resalta mientras suena
+   - hl: un elemento propio (por ejemplo, un botón de respuesta) que se resalta mientras suena */
+function say(input,opt){
+  opt=(opt===true)?{force:true}:(opt||{});
+  const segs=Array.isArray(input)?input:[{text:input,who:opt.who}];
+  const items=[];
+  segs.forEach(seg=>{ splitSent(seg.text).forEach(raw=>items.push({raw,spoken:clean(raw),who:seg.who||'guia',hl:seg.hl||null})); });
+  if(opt.el){ opt.el.innerHTML=''; items.forEach(it=>{ if(it.hl) return; const sp=document.createElement('span'); sp.className='sent'; sp.textContent=it.raw+' '; opt.el.appendChild(sp); it.hl=sp; }); }
+  $('#live').textContent=items.map(i=>i.spoken).join(' ');
+  const id=++sayId; clearHL();
+  if(!(S.speak||opt.force)||!('speechSynthesis' in window)) return;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const speakable=items.filter(it=>/[a-záéíóúñü0-9]/i.test(it.spoken));
+  setTimeout(()=>{ if(id!==sayId) return;
+    speakable.forEach((it,i)=>{ try{
+      const u=new SpeechSynthesisUtterance(it.spoken); const pr=(S.chars&&VOICES[it.who])||VOICES.guia;
+      if(voice){ u.voice=voice; u.lang=voice.lang; } else u.lang='es-419';
+      u.rate=Math.max(.5,Math.min(1.6,pr.rate*S.rate)); u.pitch=pr.pitch; u.volume=1;
+      u.onstart=()=>{ if(id!==sayId) return; clearHL(); if(it.hl) it.hl.classList.add('reading'); };
+      u.onend=()=>{ if(id===sayId&&i===speakable.length-1) clearHL(); };
+      u.onerror=u.onend; speechSynthesis.speak(u);
+    }catch(e){} });
+  },70);
 }
+function clearHL(){ $$('.reading').forEach(x=>x.classList.remove('reading')); }
+function stopVoice(){ sayId++; clearHL(); try{ speechSynthesis.cancel(); }catch(e){} }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+/* ---------- EFECTOS DE SONIDO (sintetizados, no se descargan) ---------- */
+let AC=null;
+function ac(){ if(!S.sfx) return null; try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); }catch(e){ AC=null; } return AC; }
+function tone(f,t,d,type,vol,slideTo){ const a=ac(); if(!a) return; const o=a.createOscillator(), g=a.createGain(); o.type=type||'sine';
+  const t0=a.currentTime+t; o.frequency.setValueAtTime(f,t0); if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,t0+d);
+  g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(vol||.12,t0+.015); g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+  o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0+d+.05); }
+const SFX={
+  tap(){ tone(660,0,.09,'triangle',.08,990); },
+  ok(){ [523,659,784,1047].forEach((f,i)=>tone(f,i*.08,.22,'triangle',.11)); },
+  retry(){ tone(392,0,.18,'sine',.09); tone(330,.14,.26,'sine',.08); },
+  whoosh(){ tone(220,0,.5,'sine',.06,660); tone(330,.05,.45,'triangle',.03,880); },
+  ding(){ tone(880,0,.5,'sine',.09); tone(1320,0,.35,'sine',.04); },
+  win(){ [523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,i*.11,.28,'triangle',.1)); }
+};
 
 /* ---------- CONTENIDO ---------- */
 const INFO={
-  sol:{name:'El Sol',emoji:'☀️',facts:[
-    'El Sol es una estrella. Es una enorme bola de gas muy, muy caliente.',
-    'El Sol nos da luz y calor. Sin él, las plantas no podrían crecer.',
-    'El Sol es muchísimo más grande que la Tierra. Si el Sol fuera una pelota de básquet, la Tierra sería tan pequeña como un grano de quinua.',
-    '¡Cuidado! Nunca mires el Sol directamente: puede dañar tus ojos.']},
-  tierra:{name:'La Tierra',emoji:'🌍',facts:[
-    'La Tierra es nuestro planeta. Aquí vivimos las personas, los animales y las plantas.',
-    'La Tierra tiene forma de esfera, como una pelota. Tiene agua, tierra y aire.',
-    'La Tierra gira sobre sí misma. Una vuelta completa dura un día: por eso hay día y noche.',
-    'La Tierra también da vueltas alrededor del Sol. Una vuelta completa dura un año.',
-    'Ecuador está en la mitad de la Tierra, en la línea equinoccial. Busca el punto rojo de Quito.']},
-  luna:{name:'La Luna',emoji:'🌙',facts:[
-    'La Luna es el satélite de la Tierra: da vueltas alrededor de nuestro planeta.',
-    'La Luna no tiene luz propia. Brilla porque refleja la luz del Sol, como un espejo.',
-    'La Luna es más pequeña que la Tierra. Tiene muchos huecos llamados cráteres.',
-    'A veces puedes ver la Luna de día. ¡Búscala en el cielo con tu familia!']}
+  sol:{name:'El Sol',emoji:'☀️',hello:'¡Hola, hola! Soy el Sol.',facts:[
+    'Soy una estrella. ¡Soy una bola gigante de gas, muy, muy caliente!',
+    'Yo le doy luz y calor a la Tierra. Sin mí, las plantas no podrían crecer.',
+    'Soy enorme. Si yo fuera una pelota de básquet, la Tierra sería chiquita, como un grano de quinua.',
+    '¡Cuidado! Nunca me mires directamente, porque puedo dañar tus ojos.']},
+  tierra:{name:'La Tierra',emoji:'🌍',hello:'¡Hola! Soy la Tierra, tu planeta.',facts:[
+    'Aquí vives tú, junto con muchas personas, animales y plantas.',
+    'Tengo forma de esfera, como una pelota. Tengo agua, tierra y aire.',
+    'Doy vueltas sobre mí misma, como un trompo. Una vuelta completa dura un día. ¡Por eso hay día y noche!',
+    'También viajo alrededor del Sol. Para dar una vuelta completa me demoro un año entero.',
+    'Ecuador está en mi mitad, en la línea equinoccial. ¿Ves el punto rojo? ¡Ahí está Quito!']},
+  luna:{name:'La Luna',emoji:'🌙',hello:'¡Hola! Soy la Luna.',facts:[
+    'Soy el satélite de la Tierra. Doy vueltas a su alrededor, como si jugáramos a perseguirnos.',
+    'No tengo luz propia. Brillo porque reflejo la luz del Sol, como un espejo.',
+    'Soy más pequeña que la Tierra. Tengo muchos huecos redondos llamados cráteres.',
+    'A veces me puedes ver de día. ¡Búscame en el cielo con tu familia!']}
 };
+const PRAISE=['¡Correcto!','¡Muy bien!','¡Excelente!','¡Así se hace!','¡Bravo!'];
+const RETRY=['¡Casi!','Buen intento.','¡Sigue intentando!','Uy, esta vez no.'];
 const QUIZ=[
   {q:'¿Cuál de estos astros es una estrella?',o:[['☀️','El Sol',1],['🌍','La Tierra',0],['🌙','La Luna',0]],e:'El Sol es una estrella: tiene luz propia y nos da calor.'},
   {q:'¿Quién le da luz y calor a la Tierra?',o:[['☀️','El Sol',1],['🌙','La Luna',0],['☁️','Las nubes',0]],e:'La luz y el calor vienen del Sol.'},
@@ -368,7 +437,26 @@ function applyPrefs(){
   if(R){ R.setPixelRatio(S.lite?1:Math.min(window.devicePixelRatio||1,2)); resize(); }
   savePrefs();
 }
-$('#bSpeak').onclick=()=>{S.speak=!S.speak; applyPrefs(); if(S.speak) say('Voz activada.'); else { try{speechSynthesis.cancel();}catch(e){} } };
+$('#bSpeak').onclick=()=>{S.speak=!S.speak; applyPrefs(); if(S.speak) say([{text:'¡Hola! Ya puedo hablar.',who:'sol'}]); else stopVoice(); };
+function fillVoiceUI(){
+  const sel=$('#vSel'); if(!sel) return; sel.innerHTML='';
+  if(!voices.length){ const o=document.createElement('option'); o.textContent='Voz predeterminada del equipo'; sel.appendChild(o); }
+  voices.forEach(v=>{ const o=document.createElement('option'); o.value=v.name; o.textContent=v.name.replace(/Microsoft |Google /,'')+' ('+v.lang+')'+(v.localService?'':' · necesita internet'); if(voice&&v.name===voice.name) o.selected=true; sel.appendChild(o); });
+  const n=voice?voice.name.toLowerCase():'';
+  $('#vHint').textContent=!('speechSynthesis' in window)?'Este navegador no puede leer en voz alta.':
+    !voices.length?'No hay voces en español instaladas. En Android: Ajustes › Sistema › Idioma › Salida de texto a voz › instalar los datos de voz en español.':
+    scoreVoice(voice)>=15?'Buena elección: es una de las voces más naturales de este equipo.':'Si suena robótica, prueben otra voz de la lista o abran la app en Chrome o Edge.';
+  $$('.seg button').forEach(b=>b.setAttribute('aria-pressed',String(parseFloat(b.dataset.rate)===S.rate)));
+  $('#vChars').checked=S.chars; $('#vSfx').checked=S.sfx;
+}
+$('#bVoiceCfg').onclick=()=>{ const p=$('#voicePanel'); p.hidden=!p.hidden; $('#bVoiceCfg').setAttribute('aria-expanded',String(!p.hidden)); if(!p.hidden){ loadVoices(); $('#vSel').focus(); } };
+$('#vClose').onclick=()=>{ $('#voicePanel').hidden=true; $('#bVoiceCfg').setAttribute('aria-expanded','false'); $('#bVoiceCfg').focus(); };
+$('#vSel').onchange=e=>{ S.voiceName=e.target.value; voice=voices.find(v=>v.name===S.voiceName)||voice; savePrefs(); fillVoiceUI(); };
+$$('.seg button').forEach(b=>b.onclick=()=>{ S.rate=parseFloat(b.dataset.rate); savePrefs(); fillVoiceUI(); });
+$('#vChars').onchange=e=>{ S.chars=e.target.checked; savePrefs(); };
+$('#vSfx').onchange=e=>{ S.sfx=e.target.checked; savePrefs(); if(S.sfx) SFX.tap(); };
+$('#vTest').onclick=()=>{ SFX.ding(); say([{text:'¡Hola! Soy el Sol.',who:'sol'},{text:'Yo soy la Tierra.',who:'tierra'},{text:'¡Y yo soy la Luna! Vamos a aprender juntos.',who:'luna'}],{force:true}); };
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#voicePanel').hidden) $('#vClose').click(); });
 $('#bPlus').onclick=()=>{S.fs=Math.min(26,S.fs+2); applyPrefs();};
 $('#bMinus').onclick=()=>{S.fs=Math.max(14,S.fs-2); applyPrefs();};
 $('#bHc').onclick=()=>{S.hc=!S.hc; applyPrefs();};
@@ -484,15 +572,16 @@ function focusBody(key){
 const F={key:null,i:0};
 function showFact(key,next){
   const d=INFO[key]; if(!d) return;
-  if(F.key!==key){ F.key=key; F.i=0; } else if(next){ F.i=(F.i+1)%d.facts.length; }
-  $('#factCard').hidden=false; $('#fEmoji').textContent=d.emoji; $('#fName').textContent=d.name; $('#fText').textContent=d.facts[F.i];
+  const first=F.key!==key;
+  if(first){ F.key=key; F.i=0; } else if(next){ F.i=(F.i+1)%d.facts.length; }
+  $('#factCard').hidden=false; $('#fEmoji').textContent=d.emoji; $('#fName').textContent=d.name+' dice:';
   $('#fDots').innerHTML=d.facts.map((_,i)=>'<i class="'+(i===F.i?'on':'')+'"></i>').join('');
   $$('.pick button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.body===key));
-  say(d.name+'. '+d.facts[F.i]);
+  SFX.tap(); say(first?[{text:d.hello,who:key},{text:d.facts[F.i],who:key}]:[{text:d.facts[F.i],who:key}],{el:$('#fText')});
 }
 $$('.pick button').forEach(b=>b.onclick=()=>{ showFact(b.dataset.body); focusBody(b.dataset.body); });
 $('#fNext').onclick=()=>F.key&&showFact(F.key,true);
-$('#fListen').onclick=()=>F.key&&say(INFO[F.key].name+'. '+INFO[F.key].facts[F.i],true);
+$('#fListen').onclick=()=>{ if(!F.key) return; const d=INFO[F.key]; say([{text:d.hello,who:F.key},{text:d.facts[F.i],who:F.key}],{el:$('#fText'),force:true}); };
 $('#bOverview').onclick=()=>{ overview(); $$('.pick button').forEach(b=>b.setAttribute('aria-pressed','false')); };
 
 /* ---------- DIA Y NOCHE ---------- */
@@ -562,51 +651,55 @@ function draw2D(h,mini){
 }
 $('#dnSlider').addEventListener('input',e=>{ DN.auto=false; updPlay(); setHour(parseFloat(e.target.value)); });
 function updPlay(){ $('#dnPlay').textContent=DN.auto?'⏸ Pausar':'▶ Girar sola'; }
-$('#dnPlay').onclick=()=>{ DN.auto=!DN.auto; DN.anim=null; updPlay(); say(DN.auto?'La Tierra gira sola. Mira qué pasa con Quito.':'Pausa.'); };
+$('#dnPlay').onclick=()=>{ DN.auto=!DN.auto; DN.anim=null; updPlay(); if(DN.auto) SFX.whoosh(); say(DN.auto?[{text:'¡Mírame girar! Fíjate en Quito.',who:'tierra'}]:'Pausa.'); };
 $('#dn2dBtn').onclick=()=>{ S.view2d=!S.view2d; $('#dn2dBtn').setAttribute('aria-pressed',S.view2d); enterMode(S.mode); setHour(DN.hour,true); };
 $('#poeStart').onclick=()=>{
   const start=(dayState(DN.hour)==='dia'||dayState(DN.hour)==='amanecer')?13:22; DN.auto=false; updPlay(); setHour(start,true);
   const turn=Math.random()<.5?12:24; DN.poe={turn,start};
   const now=dayState(start)==='dia'?'de día':'de noche';
   const txt='Ahora en Quito es '+now+'. La Tierra va a dar '+(turn===12?'media vuelta':'una vuelta completa')+'. ¿Qué habrá en Quito: día o noche?';
-  $('#poeQ').textContent=txt; $('#poeR').textContent=''; $('#poeOpts').hidden=false; $('#poeStart').hidden=true; say(txt);
+  $('#poeR').textContent=''; $('#poeOpts').hidden=false; $('#poeStart').hidden=true; say(txt,{el:$('#poeQ')});
 };
 $$('#poeOpts button').forEach(b=>b.onclick=()=>{
   if(!DN.poe) return; DN.poe.guess=b.dataset.p; $('#poeOpts').hidden=true;
-  $('#poeR').textContent='👀 Observa…'; say('Observa.');
+  SFX.whoosh(); say([{text:'¡Allá voy! Observa bien.',who:'tierra'}],{el:$('#poeR')});
   DN.anim={from:DN.poe.start,to:DN.poe.start+DN.poe.turn,t:0,dur:S.reduce?0.01:4};
 });
 function finishPoe(){
   const p=DN.poe; if(!p) return; const res=dayState(p.start+p.turn)==='dia'?'dia':'noche'; const ok=p.guess===res;
   const exp=p.turn===12?'Con media vuelta, Quito pasó al otro lado: el lado que '+(res==='noche'?'no mira':'mira')+' al Sol.':'Con una vuelta completa, Quito volvió al mismo lugar. ¡Una vuelta completa es un día entero!';
-  const txt=(ok?'✅ ¡Tu predicción se cumplió! ':'🤔 Pasó algo diferente a lo que predijiste. ')+'Ahora es '+(res==='dia'?'de día':'de noche')+'. '+exp+' ¿Cómo se lo explicarías a un compañero?';
-  $('#poeR').textContent=txt; say(txt); $('#poeStart').hidden=false; $('#poeStart').textContent='Predecir otra vez'; DN.poe=null;
+  const txt=(ok?'✅ '+pick(['¡Tu predicción se cumplió!','¡Lo adivinaste!','¡Muy bien pensado!'])+' ':'🤔 Pasó algo diferente a lo que predijiste. ')+'Ahora es '+(res==='dia'?'de día':'de noche')+'. '+exp+' ¿Cómo se lo explicarías a un compañero?';
+  ok?SFX.ok():SFX.retry(); say(txt,{el:$('#poeR')}); $('#poeStart').hidden=false; $('#poeStart').textContent='Predecir otra vez'; DN.poe=null;
 }
 
 /* ---------- RETO ---------- */
-const Q={i:0,order:[],ans:[]};
+const Q={i:0,order:[],ans:[],shown:null};
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function startQuiz(){ Q.i=0; Q.order=QUIZ.map((_,i)=>i); Q.ans=[]; showQ(); }
 function showQ(){
   if(Q.i>=QUIZ.length){ const ok=Q.ans.filter(Boolean).length;
     $('#qText').textContent='🎉 ¡Muy bien, equipo explorador!'; $('#qNum').textContent=''; $('#qOpts').innerHTML='';
-    $('#qFeed').textContent='Respondieron bien '+ok+' de '+QUIZ.length+'. Lo importante es que ahora pueden explicar por qué hay día y noche.';
-    $('#qNext').hidden=false; $('#qNext').textContent='🔁 Jugar otra vez'; $('#qListen').hidden=true; dots(); say($('#qText').textContent+' '+$('#qFeed').textContent); return; }
+    $('#qNext').hidden=false; $('#qNext').textContent='🔁 Jugar otra vez'; $('#qListen').hidden=true; dots(); SFX.win();
+    say([{text:'Respondieron bien '+ok+' de '+QUIZ.length+'.',who:'guia'},{text:'¡Y ahora ya saben por qué hay día y noche!',who:'sol'}],{el:$('#qFeed')}); return; }
   const d=QUIZ[Q.order[Q.i]]; $('#qListen').hidden=false;
   $('#qNum').textContent='Pregunta '+(Q.i+1)+' de '+QUIZ.length; $('#qText').textContent=d.q; $('#qFeed').textContent=''; $('#qNext').hidden=true; $('#qNext').textContent='Siguiente ▶';
   const box=$('#qOpts'); box.innerHTML='';
-  shuffle(d.o).forEach(o=>{ const b=document.createElement('button'); b.innerHTML='<span class="em" aria-hidden="true">'+o[0]+'</span><span>'+o[1]+'</span>'; b.dataset.ok=o[2];
-    b.onclick=()=>answer(b,d); box.appendChild(b); });
-  dots(); say(d.q+' '+d.o.map(o=>o[1]).join(', o, ')+'?');
+  Q.shown=shuffle(d.o).map(o=>{ const b=document.createElement('button'); b.innerHTML='<span class="em" aria-hidden="true">'+o[0]+'</span><span>'+o[1]+'</span>'; b.dataset.ok=o[2];
+    b.onclick=()=>answer(b,d); box.appendChild(b); return {o,b}; });
+  dots(); readQ(d);
+}
+function readQ(d,force){ // pregunta y opciones, resaltando cada botón mientras se nombra
+  const n=Q.shown.length; const opts=Q.shown.map((x,i)=>({text:(i===n-1?'¿O ':'¿')+x.o[1]+'?',who:'guia',hl:x.b}));
+  say([{text:d.q,who:'guia'}].concat(opts),{el:$('#qText'),force:!!force});
 }
 function answer(b,d){
   if(Q.ans.length>Q.i) return; const ok=b.dataset.ok==='1'; Q.ans.push(ok);
   $$('#qOpts button').forEach(x=>{ x.disabled=true; if(x.dataset.ok==='1') x.classList.add('ok'); }); if(!ok) b.classList.add('no');
-  const txt=(ok?'✅ ¡Correcto! ':'💡 Casi. ')+d.e; $('#qFeed').textContent=txt; say(txt); $('#qNext').hidden=false; dots();
+  const txt=(ok?'✅ '+pick(PRAISE)+' ':'💡 '+pick(RETRY)+' ')+d.e; ok?SFX.ok():SFX.retry(); say(txt,{el:$('#qFeed')}); $('#qNext').hidden=false; dots();
 }
 function dots(){ $('#qDots').innerHTML=QUIZ.map((_,i)=>'<i class="'+(i<Q.ans.length?(Q.ans[i]?'ok':'no'):(i===Q.i?'on':''))+'"></i>').join(''); }
 $('#qNext').onclick=()=>{ if(Q.i>=QUIZ.length){ startQuiz(); return; } Q.i++; showQ(); };
-$('#qListen').onclick=()=>{ const d=QUIZ[Q.order[Q.i]]; if(d) say(d.q+' '+d.o.map(o=>o[1]).join(', o, ')+'?',true); };
+$('#qListen').onclick=()=>{ const d=QUIZ[Q.order[Q.i]]; if(d&&Q.shown) readQ(d,true); };
 
 /* ---------- ORIENTACIÓN DEL CELULAR ---------- */
 const ORI={on:false,got:false,a:0,b:0,g:0};
@@ -670,7 +763,7 @@ function renderVR(dt){
   if(V.cool>0) V.cool-=dt;
   if(obj&&obj===V.gazeObj&&V.cool<=0){ V.gazeT+=dt; } else { V.gazeT=0; V.gazeObj=obj; }
   const p=Math.min(1,V.gazeT/1.8); $$('.ret').forEach(r=>r.style.setProperty('--p',p));
-  if(p>=1){ const k=obj.userData.body, d=INFO[k]; const t=d.emoji+' '+d.facts[V.fi[k]%d.facts.length]; V.fi[k]++; vrMsg(t); say(d.name+'. '+d.facts[(V.fi[k]-1)%d.facts.length]); V.gazeT=0; V.cool=4; }
+  if(p>=1){ const k=obj.userData.body, d=INFO[k]; const t=d.emoji+' '+d.facts[V.fi[k]%d.facts.length]; V.fi[k]++; vrMsg(t); SFX.ding(); say([{text:d.hello,who:k},{text:d.facts[(V.fi[k]-1)%d.facts.length],who:k}]); V.gazeT=0; V.cool=4; }
   if(V.stereo){ const size=R.getSize(new THREE.Vector2()); V.stereoCam.update(cam); R.setScissorTest(true);
     R.setScissor(0,0,size.x/2,size.y); R.setViewport(0,0,size.x/2,size.y); R.render(V.scene,V.stereoCam.cameraL);
     R.setScissor(size.x/2,0,size.x/2,size.y); R.setViewport(size.x/2,0,size.x/2,size.y); R.render(V.scene,V.stereoCam.cameraR);
@@ -718,7 +811,7 @@ function renderAR(dt){
   const sp=S.reduce?0:1; A.b.earth.rotation.y+=dt*.35*sp; A.mo.rotation.y+=dt*.4*sp;
   R.render(A.scene,cam);
 }
-function arFact(k){ const d=INFO[k]; const t=d.facts[A.fi[k]%d.facts.length]; A.fi[k]++; $('#arFact').hidden=false; $('#arFactT').textContent=d.emoji+' '+d.name+': '+t; say(d.name+'. '+t); }
+function arFact(k){ const d=INFO[k]; const t=d.facts[A.fi[k]%d.facts.length]; A.fi[k]++; $('#arFact').hidden=false; SFX.tap(); say([{text:d.hello,who:k},{text:t,who:k}],{el:$('#arFactT')}); }
 
 /* ---------- PUNTERO / GESTOS ---------- */
 const ptr=new Map(); let down=null, moved=0, pinch=0;
