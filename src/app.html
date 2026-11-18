@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1630">
+<title>Sol, Tierra y Luna — RA/RV para 3.º EGB</title>
+<style>
+:root{--bg:#0b1630;--bg2:#13234a;--panel:#fffaf0;--ink:#1b2440;--muted:#5b6380;--sun:#ffb703;--sun2:#fb8500;--sea:#219ebc;--ok:#2a9d8f;--bad:#d1495b;--line:#e6dcc6;--fs:18px;--r:18px}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{font-size:var(--fs);-webkit-text-size-adjust:100%}
+body{margin:0;font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Arial,sans-serif;background:var(--bg);color:var(--ink);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+button,input,label.btn{font:inherit}
+button,label.btn{cursor:pointer;border:0;border-radius:14px;min-height:48px;padding:.45rem .9rem;background:#fff;color:var(--ink);font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.18);display:inline-flex;align-items:center;justify-content:center;gap:.35rem;transition:transform .12s}
+button:active,label.btn:active{transform:translateY(2px);box-shadow:none}
+button:focus-visible,input:focus-visible,label.btn:focus-within{outline:4px solid var(--sun);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.5rem .8rem;background:var(--bg);color:#fff;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.6rem}
+.brand .logo{font-size:1.7rem;line-height:1}
+.brand h1{margin:0;font-size:1.15rem;letter-spacing:.2px}
+.brand p{margin:0;font-size:.72rem;opacity:.8}
+.a11y{display:flex;gap:.3rem;flex-wrap:wrap}
+.a11y button{min-height:40px;padding:.25rem .55rem;font-size:.78rem;background:var(--bg2);color:#fff;box-shadow:none;border:2px solid #2c3f73}
+.a11y button[aria-pressed="true"]{background:var(--sun);color:#1b2440;border-color:var(--sun)}
+.tabs{display:flex;gap:.35rem;padding:0 .6rem .5rem;overflow-x:auto;background:var(--bg);scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;background:var(--bg2);color:#dfe7ff;box-shadow:none;border:2px solid #2c3f73;font-size:.85rem;min-height:44px}
+.tab[aria-selected="true"]{background:var(--panel);color:var(--ink);border-color:var(--panel)}
+/* layout */
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 410px}
+#stage{position:relative;overflow:hidden;background:radial-gradient(ellipse at 30% 40%,#13264f 0%,#050b1f 70%);touch-action:none;user-select:none;-webkit-user-select:none}
+#stage>canvas.gl,#dn2d,#arVideo,#arPhoto{position:absolute;inset:0;width:100%;height:100%}
+#stage>canvas.gl{z-index:2;pointer-events:none}
+#dn2d{z-index:3;pointer-events:none;background:#071229}
+#arVideo,#arPhoto{z-index:1;object-fit:cover}
+#mini{right:.6rem;bottom:.6rem;width:min(34%,240px);aspect-ratio:4/3;border-radius:14px;border:2px solid #2c3f73;background:#071229;pointer-events:none}
+#mini+.cap{display:none}
+#side{background:var(--panel);overflow-y:auto;padding:1rem 1rem 2rem;border-left:4px solid var(--sun)}
+body.no-stage main{grid-template-columns:1fr}
+body.no-stage #stage{display:none}
+body.no-stage #side{border-left:0}
+.panel h2{margin:.1rem 0 .5rem;font-size:1.3rem}
+.panel h3{margin:.2rem 0 .4rem;font-size:1.05rem}
+.hint{color:var(--muted);margin:.2rem 0 .8rem;font-size:.9rem}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.row>*{flex:1 1 auto}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.pick button{flex-direction:column;font-size:1.9rem;min-height:92px;border:3px solid var(--line);box-shadow:0 3px 0 var(--line)}
+.pick button b{font-size:.9rem}
+.pick button[aria-pressed="true"]{border-color:var(--sun2);background:#fff4d6}
+.card{background:#fff;border:3px solid var(--line);border-radius:var(--r);padding:.85rem;margin:.8rem 0}
+.card-h{display:flex;align-items:center;gap:.5rem}
+.card-h span{font-size:2rem}
+.big{font-size:1.08rem;line-height:1.45;margin:.4rem 0}
+.dots{display:flex;gap:.3rem;margin:.3rem 0}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--line);display:block}
+.dots i.on{background:var(--sun2)}
+.dots i.ok{background:var(--ok)}
+.dots i.no{background:var(--bad)}
+.ghost{background:transparent;border:2px dashed #c9bfa8;box-shadow:none;width:100%;margin-top:.3rem}
+.status{display:flex;align-items:center;gap:.7rem;background:#fff;border:3px solid var(--line);border-radius:var(--r);padding:.6rem .8rem}
+.status span{font-size:2.6rem;line-height:1}
+.status small{display:block;color:var(--muted);font-size:.78rem}
+.status strong{font-size:1.4rem}
+#sky{width:100%;height:auto;border-radius:14px;margin:.5rem 0;display:block;border:3px solid var(--line)}
+.routine{font-weight:700;margin:.2rem 0 .7rem}
+.lbl{display:block;font-weight:700;font-size:.88rem;margin-top:.4rem}
+input[type=range]{width:100%;height:44px;accent-color:var(--sun2)}
+.q{font-size:1.35rem;font-weight:800;line-height:1.35;margin:.4rem 0}
+.opts{display:grid;gap:.55rem}
+.opts button{justify-content:flex-start;font-size:1.1rem;min-height:64px;border:3px solid var(--line);box-shadow:0 3px 0 var(--line);text-align:left}
+.opts button .em{font-size:1.8rem}
+.opts button.ok{border-color:var(--ok);background:#e2f5f1}
+.opts button.no{border-color:var(--bad);background:#fbe5e8}
+.steps{padding-left:1.2rem;line-height:1.6}
+.warn{background:#fff1e0;border-left:6px solid var(--sun2);padding:.55rem .7rem;border-radius:10px;font-size:.88rem}
+.tiny{font-size:.78rem;color:var(--muted)}
+.primary{background:var(--sun);}
+/* stage overlays */
+.ui{position:absolute;z-index:5}
+.note{left:.6rem;bottom:.6rem;background:rgba(5,11,31,.75);color:#fff;font-size:.72rem;padding:.3rem .6rem;border-radius:20px}
+#hudDN{left:.6rem;top:.8rem;color:#ffe08a;font-weight:800;font-size:.95rem;text-shadow:0 2px 6px #000;display:flex;align-items:center;gap:.3rem}
+#hudDN b{font-size:2rem}
+#hudTap{right:.6rem;top:.6rem;background:rgba(5,11,31,.75);color:#fff;padding:.35rem .7rem;border-radius:20px;font-size:.8rem}
+#no3d{inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:1.5rem;font-size:1rem}
+#no3d .em{font-size:3.5rem}
+#vrui{inset:0;pointer-events:none}
+#vrui .btns{position:absolute;top:.6rem;right:.6rem;display:flex;gap:.4rem;pointer-events:auto}
+#vrui .btns button{min-height:44px;background:rgba(255,255,255,.92)}
+.eye{position:absolute;top:0;bottom:0;left:0;width:100%;display:flex;align-items:center;justify-content:center}
+#vrui.stereo .eye{width:50%}
+#vrui.stereo #eyeR{left:50%}
+#eyeR{display:none}
+#vrui.stereo #eyeR{display:flex}
+.ret{width:34px;height:34px;border-radius:50%;--p:0;background:conic-gradient(var(--sun) calc(var(--p)*1turn),rgba(255,255,255,.25) 0);-webkit-mask:radial-gradient(circle,transparent 9px,#000 10px);mask:radial-gradient(circle,transparent 9px,#000 10px)}
+.vrmsg{position:absolute;bottom:12%;left:8%;right:8%;background:rgba(5,11,31,.82);color:#fff;border-radius:14px;padding:.6rem .8rem;font-size:1rem;text-align:center;display:none}
+#vrui.stereo .vrmsg{font-size:.8rem}
+.immersive{position:fixed!important;inset:0!important;z-index:100;width:100vw!important;height:100vh!important}
+/* guide */
+.guide{max-width:880px;margin:0 auto;line-height:1.55}
+.guide h2{font-size:1.45rem}
+.guide h3{margin-top:1.3rem;border-bottom:3px solid var(--line);padding-bottom:.2rem}
+.guide table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.6rem 0}
+.guide th,.guide td{border:2px solid var(--line);padding:.45rem .55rem;vertical-align:top;text-align:left}
+.guide th{background:#fff4d6}
+.pill{display:inline-block;background:#fff4d6;border:2px solid var(--line);border-radius:20px;padding:.1rem .6rem;margin:.15rem;font-size:.85rem}
+footer.credit{font-size:.72rem;color:var(--muted);margin-top:1.4rem;border-top:2px solid var(--line);padding-top:.6rem}
+/* high contrast */
+body.hc{--panel:#000;--ink:#fff;--muted:#ffe600;--line:#fff;--sun:#ffe600;--sun2:#ffe600;--ok:#00ff9c;--bad:#ff6b6b}
+body.hc button,body.hc label.btn{background:#000;color:#fff;border:3px solid #fff}
+body.hc .card,body.hc .status,body.hc .opts button,body.hc .pick button{background:#000;color:#fff}
+body.hc .tab[aria-selected="true"]{background:#ffe600;color:#000}
+body.hc .warn{background:#000;color:#fff;border-color:#ffe600}
+body.hc .guide th{background:#222}
+body.hc .opts button.ok{background:#003d26}
+body.hc .opts button.no{background:#4a0010}
+body.hc .pick button[aria-pressed="true"]{background:#333}
+@media (max-width:860px){
+ main{grid-template-columns:1fr;grid-template-rows:minmax(240px,50vh) 1fr}
+ #side{border-left:0;border-top:4px solid var(--sun)}
+ .brand p{display:none}
+ .a11y button span{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true">🌞🌍🌙</span><div><h1>Sol, Tierra y Luna</h1><p>Experiencia de RA/RV · Ciencias Naturales · 3.º EGB</p></div></div>
+  <div class="a11y" role="toolbar" aria-label="Opciones de accesibilidad">
+    <button id="bSpeak" aria-pressed="true" title="Leer en voz alta">🔊 <span>Voz</span></button>
+    <button id="bMinus" title="Letra más pequeña" aria-label="Letra más pequeña">A−</button>
+    <button id="bPlus" title="Letra más grande" aria-label="Letra más grande">A+</button>
+    <button id="bHc" aria-pressed="false" title="Alto contraste">◐ <span>Contraste</span></button>
+    <button id="bMotion" aria-pressed="false" title="Detener movimientos automáticos">⏸ <span>Quieto</span></button>
+    <button id="bLite" aria-pressed="false" title="Modo ligero para equipos lentos">🪶 <span>Ligero</span></button>
+  </div>
+</header>
+<nav class="tabs" role="tablist" aria-label="Actividades">
+  <button class="tab" role="tab" data-mode="explorar" aria-selected="true">🔭 Explorar</button>
+  <button class="tab" role="tab" data-mode="dianoche" aria-selected="false">🌗 Día y noche</button>
+  <button class="tab" role="tab" data-mode="reto" aria-selected="false">🧩 Reto</button>
+  <button class="tab" role="tab" data-mode="rv" aria-selected="false">👓 RV</button>
+  <button class="tab" role="tab" data-mode="ra" aria-selected="false">📷 RA</button>
+  <button class="tab" role="tab" data-mode="guia" aria-selected="false">📘 Guía docente</button>
+</nav>
+<main>
+  <section id="stage" aria-label="Escena del espacio. También puedes usar los botones del panel.">
+    <canvas id="dn2d" hidden aria-hidden="true"></canvas>
+    <canvas id="mini" class="ui" hidden aria-hidden="true"></canvas>
+    <video id="arVideo" playsinline muted hidden></video>
+    <img id="arPhoto" alt="" hidden>
+    <div id="no3d" class="ui" hidden><div class="em" aria-hidden="true">🌍</div><p><b>Este equipo no puede mostrar 3D.</b><br>Usa la vista 2D de «Día y noche», el Reto o el Plan C sin dispositivos de la Guía docente.</p></div>
+    <div id="hudDN" class="ui" hidden aria-hidden="true"><b>☀️</b>Luz del Sol →</div>
+    <div id="hudTap" class="ui" aria-hidden="true">👆 Toca un astro</div>
+    <div class="ui note" id="scaleNote">⚠️ Los tamaños y distancias no están a escala</div>
+    <div id="vrui" class="ui" hidden>
+      <div class="btns"><button id="vrCenter">🎯 Centrar</button><button id="vrExit">✕ Salir</button></div>
+      <div class="eye" id="eyeL"><div class="ret"></div><div class="vrmsg"></div></div>
+      <div class="eye" id="eyeR"><div class="ret"></div><div class="vrmsg"></div></div>
+    </div>
+  </section>
+
+  <aside id="side">
+    <!-- EXPLORAR -->
+    <div class="panel" data-panel="explorar">
+      <h2>🔭 Explora el espacio</h2>
+      <p class="hint">Toca el Sol, la Tierra o la Luna. Arrastra para mirar alrededor y pellizca para acercar.</p>
+      <div class="pick" role="group" aria-label="Elegir un astro">
+        <button data-body="sol" aria-pressed="false">☀️<b>Sol</b></button>
+        <button data-body="tierra" aria-pressed="false">🌍<b>Tierra</b></button>
+        <button data-body="luna" aria-pressed="false">🌙<b>Luna</b></button>
+      </div>
+      <article class="card" id="factCard" hidden aria-live="polite">
+        <div class="card-h"><span id="fEmoji" aria-hidden="true"></span><h3 id="fName"></h3></div>
+        <p id="fText" class="big"></p>
+        <div class="dots" id="fDots" aria-hidden="true"></div>
+        <div class="row"><button id="fListen">🔊 Escuchar</button><button id="fNext" class="primary">Otro dato ▶</button></div>
+      </article>
+      <button class="ghost" id="bOverview">🔄 Ver los tres juntos</button>
+      <p class="tiny" style="margin-top:1rem">💡 Pregunta para conversar: ¿en qué se parecen y en qué se diferencian el Sol, la Tierra y la Luna?</p>
+    </div>
+
+    <!-- DIA Y NOCHE -->
+    <div class="panel" data-panel="dianoche" hidden>
+      <h2>🌗 ¿Por qué hay día y noche?</h2>
+      <div class="status" aria-live="polite"><span id="dnIcon" aria-hidden="true">☀️</span><div><small>En Quito 📍 ahora es</small><strong id="dnState">de día</strong><small id="dnHour"></small></div></div>
+      <canvas id="sky" width="640" height="250" aria-hidden="true"></canvas>
+      <p id="dnRoutine" class="routine"></p>
+      <label for="dnSlider" class="lbl">Gira la Tierra: arrástrala con el dedo o mueve esta barra</label>
+      <input type="range" id="dnSlider" min="0" max="24" step="0.25" value="14" aria-describedby="dnHour">
+      <div class="row"><button id="dnPlay">▶ Girar sola</button><button id="dn2dBtn" aria-pressed="false">🖼️ Vista 2D</button></div>
+      <div class="card">
+        <h3>🔮 Predice · observa · explica</h3>
+        <p id="poeQ" class="big">Antes de girar la Tierra, adivina qué pasará en Quito.</p>
+        <div class="row" id="poeOpts" hidden><button data-p="dia">☀️ Día</button><button data-p="noche">🌙 Noche</button></div>
+        <p id="poeR" class="big" aria-live="polite"></p>
+        <button id="poeStart" class="primary" style="width:100%">Empezar a predecir</button>
+      </div>
+    </div>
+
+    <!-- RETO -->
+    <div class="panel" data-panel="reto" hidden>
+      <h2>🧩 Reto del explorador</h2>
+      <div class="dots" id="qDots" aria-hidden="true"></div>
+      <p id="qNum" class="tiny"></p>
+      <p id="qText" class="q"></p>
+      <button id="qListen" style="margin-bottom:.6rem">🔊 Escuchar pregunta</button>
+      <div id="qOpts" class="opts" role="group" aria-label="Respuestas"></div>
+      <p id="qFeed" class="big" aria-live="polite"></p>
+      <button id="qNext" class="primary" hidden style="width:100%">Siguiente ▶</button>
+      <p class="tiny">🔒 No se piden nombres ni se guardan respuestas. El reto es para aprender en equipo, no para poner nota.</p>
+    </div>
+
+    <!-- RV -->
+    <div class="panel" data-panel="rv" hidden>
+      <h2>👓 Realidad virtual</h2>
+      <p class="hint">Entras al espacio. El Sol, la Tierra y la Luna están a tu alrededor.</p>
+      <ol class="steps">
+        <li>Pon el celular <b>en horizontal</b>.</li>
+        <li>Elige si vas a usar o no un visor de cartón.</li>
+        <li>Mira un astro fijamente <b>2 segundos</b> para escuchar un dato.</li>
+      </ol>
+      <div class="row"><button id="vrMono" class="primary">📱 Sin visor</button><button id="vrStereo">👓 Con visor de cartón</button></div>
+      <p class="warn">Con visor: máximo <b>2–3 minutos</b> por estudiante, siempre sentado y con un adulto cerca. Si te mareas, quítatelo y descansa.</p>
+      <p class="tiny">Si al mover el celular la vista no gira, abre el archivo <b>.html</b> descargado en Chrome. También puedes mirar alrededor arrastrando con el dedo.</p>
+    </div>
+
+    <!-- RA -->
+    <div class="panel" data-panel="ra" hidden>
+      <h2>📷 Realidad aumentada</h2>
+      <p class="hint">La Tierra y la Luna aparecen en tu aula. Mira cómo la luz del Sol ilumina solo una mitad de la Tierra.</p>
+      <div class="row"><button id="arCam" class="primary">📷 Abrir cámara</button><label class="btn" for="arFile">🖼️ Usar una foto</label><input type="file" id="arFile" accept="image/*" hidden></div>
+      <div class="row"><button id="arBig" aria-label="Más grande">➕ Más grande</button><button id="arSmall" aria-label="Más pequeño">➖ Más pequeño</button></div>
+      <div class="row"><button id="arCenter">🎯 Traer al frente</button><button id="arStop">✕ Cerrar cámara</button></div>
+      <p id="arMsg" class="tiny" aria-live="polite"></p>
+      <article class="card" id="arFact" hidden aria-live="polite"><p id="arFactT" class="big"></p></article>
+      <p class="warn">🔒 La cámara no graba ni envía nada: la imagen solo se ve en esta pantalla. La foto que elijas debe ser del aula <b>sin personas</b>.</p>
+    </div>
+
+    <!-- GUIA -->
+    <div class="panel guide" data-panel="guia" hidden>
+      <h2>📘 Guía docente</h2>
+      <p><span class="pill">Ciencias Naturales</span><span class="pill">Subnivel Elemental · 3.º EGB</span><span class="pill">40 minutos</span><span class="pill">Grupos de 3–4 por equipo</span><span class="pill">Sin internet</span></p>
+
+      <h3>Intención pedagógica</h3>
+      <p><b>Destreza de referencia:</b> la de Ciencias Naturales del subnivel Elemental que pide describir, con apoyo de las TIC y otros recursos, las características del Sol, la Tierra y la Luna, y distinguir sus semejanzas y diferencias por su forma, tamaño y movimiento. <i>Copien el código y la redacción exactos desde el currículo vigente.</i></p>
+      <p><b>Objetivo de la experiencia:</b> que cada estudiante explique con sus palabras que <b>el día y la noche ocurren porque la Tierra gira sobre sí misma</b> frente al Sol, y compare el Sol, la Tierra y la Luna por su tamaño, su forma y su movimiento.</p>
+      <p><b>Idea previa que se trabaja:</b> muchos niños de 7 y 8 años creen que de noche «el Sol se esconde», «se apaga» o «se va detrás de las montañas». La actividad de predecir, observar y explicar pone esa idea a prueba.</p>
+
+      <h3>Secuencia (ciclo ERCA)</h3>
+      <table>
+        <tr><th>Momento</th><th>Qué hacen</th><th>Modo</th></tr>
+        <tr><td><b>Experiencia</b><br>8 min</td><td>Pregunta detonante: «¿A dónde se va el Sol en la noche?». Cada niño dibuja su idea en papel, sin nombre (solo un número de mesa). Exploran el Sol, la Tierra y la Luna en grupos.</td><td>🔭 Explorar</td></tr>
+        <tr><td><b>Reflexión</b><br>8 min</td><td>Predicen, observan y explican qué pasa en Quito cuando la Tierra da media vuelta o una vuelta completa. Relacionan la hora con su rutina diaria.</td><td>🌗 Día y noche</td></tr>
+        <tr><td><b>Conceptualización</b><br>10 min</td><td>La docente modela con una linterna y una pelota (Plan C). Turnos cortos de RV o RA para ver la mitad iluminada de la Tierra.</td><td>👓 RV · 📷 RA</td></tr>
+        <tr><td><b>Aplicación</b><br>10 min</td><td>Reto en parejas. Vuelven a dibujar su idea: comparar el dibujo de antes y el de después sirve como evidencia de aprendizaje.</td><td>🧩 Reto</td></tr>
+        <tr><td><b>Cierre</b><br>4 min</td><td>Cada grupo completa en voz alta: «Hay día y noche porque…».</td><td>—</td></tr>
+      </table>
+
+      <h3>Accesibilidad e inclusión</h3>
+      <ul>
+        <li><b>🔊 Voz:</b> todos los textos, preguntas y datos se leen en voz alta con la voz del propio equipo, que funciona sin internet si el celular ya tiene una voz en español instalada.</li>
+        <li><b>A− / A+</b> para el tamaño de letra, <b>◐ Contraste</b> para baja visión y <b>⏸ Quieto</b> para quienes se distraen o se marean con el movimiento. La app respeta la opción del sistema «reducir movimiento».</li>
+        <li>Todo lo que se hace tocando la escena 3D también se puede hacer con <b>botones grandes</b> (mínimo 48 px), con teclado y con lector de pantalla.</li>
+        <li><b>Lectura fácil:</b> frases cortas, una idea por oración y apoyo con pictogramas (emojis).</li>
+        <li>En RV se selecciona <b>con la mirada</b>, sin necesidad de mandos ni de precisión motriz.</li>
+        <li>El reto <b>no pone nota ni penaliza</b>: siempre explica la respuesta correcta.</li>
+      </ul>
+
+      <h3>Baja conectividad: tres niveles</h3>
+      <table>
+        <tr><th>Nivel</th><th>Qué necesita</th><th>Cómo se usa</th></tr>
+        <tr><td><b>1. Archivo offline</b></td><td>Un celular, tablet o computadora con Chrome. Ningún plan de datos.</td><td>Un solo archivo <b>.html</b> (~0,7 MB) que se pasa por USB, Bluetooth o WhatsApp y se abre sin internet. No descarga nada más.</td></tr>
+        <tr><td><b>2. Equipos lentos</b></td><td>Cualquier navegador.</td><td><b>🪶 Ligero</b> baja la calidad del 3D; <b>🖼️ Vista 2D</b> muestra el día y la noche sin 3D. Si el equipo no puede mostrar 3D, la app pasa sola a 2D.</td></tr>
+        <tr><td><b>3. Plan C sin dispositivos</b></td><td>Una linterna, una pelota de espuma, un palillo y plastilina.</td><td>La linterna es el Sol y la pelota es la Tierra, con Quito marcado con plastilina. Al girar la pelota, la mitad iluminada es de día y la otra mitad es de noche.</td></tr>
+      </table>
+
+      <h3>Uso ético y seguridad</h3>
+      <ul>
+        <li><b>Privacidad de menores:</b> la app no pide nombres, no guarda respuestas, no usa internet y no graba la cámara. Las fotos de evidencia muestran solo manos, pantallas o materiales; <b>nunca rostros</b> ni uniformes con nombre.</li>
+        <li><b>Autorización:</b> apliquen la experiencia con el permiso de la institución y de la docente tutora, siguiendo el protocolo de la escuela sobre imágenes de estudiantes.</li>
+        <li><b>Salud:</b> nunca mirar el Sol directamente. Visor de cartón solo en sesiones cortas, sentados y con supervisión; los fabricantes de visores suelen fijar una edad mínima, así que revisen la del visor que usen. Quien prefiera no usar visor usa el modo 📱 o el Plan C.</li>
+        <li><b>Rigor científico:</b> la app avisa que los tamaños y distancias <b>no están a escala</b> y explica la escala real con un ejemplo cercano (pelota de básquet y grano de quinua).</li>
+        <li><b>Inteligencia artificial:</b> este prototipo se programó y se redactó con ayuda de IA generativa (Claude, de Anthropic). La IA no recibió ningún dato de estudiantes. El equipo docente revisa los contenidos y los ajusta antes de aplicarlos, y registra ese uso en su bitácora de IA.</li>
+      </ul>
+
+      <h3>Evidencias que conviene recoger</h3>
+      <ul>
+        <li>Dibujos de antes y después (con número de mesa, sin nombres).</li>
+        <li>Fotos de manos usando la app y del Plan C, sin rostros.</li>
+        <li>Conteo de aciertos del reto anotado por la docente a nivel de grupo, sin nombres.</li>
+        <li>Observaciones de accesibilidad: quién necesitó voz, contraste o 2D, sin identificar al estudiante.</li>
+        <li>Lista de ajustes hechos al prototipo después de la aplicación.</li>
+      </ul>
+      <footer class="credit">Prototipo educativo de libre uso · Hecho con Three.js (licencia MIT), incluido dentro del mismo archivo · Programado con asistencia de IA (Claude) · Equipo: José Andrés Ureta Granda y equipo docente en formación.</footer>
+    </div>
+  </aside>
+</main>
+<div id="live" class="sr" aria-live="polite"></div>
+
+<script>/*THREE_JS*/</script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const TAU=Math.PI*2, D2R=Math.PI/180;
+const S={mode:'explorar',speak:true,reduce:false,lite:false,hc:false,fs:18,paused:false,view2d:false};
+try{ S.reduce=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+try{ const p=JSON.parse(localStorage.getItem('stl_prefs')||'{}'); Object.assign(S,p); }catch(e){}
+function savePrefs(){ try{ localStorage.setItem('stl_prefs',JSON.stringify({speak:S.speak,reduce:S.reduce,lite:S.lite,hc:S.hc,fs:S.fs})); }catch(e){} }
+
+/* ---------- VOZ ---------- */
+let voice=null;
+function pickVoice(){ try{ const vs=speechSynthesis.getVoices(); const pref=['es-ec','es-419','es-us','es-mx','es-co','es-pe','es-es'];
+  for(const p of pref){ const v=vs.find(v=>(v.lang||'').replace('_','-').toLowerCase()===p); if(v){voice=v;return;} }
+  voice=vs.find(v=>(v.lang||'').toLowerCase().startsWith('es'))||null; }catch(e){} }
+if('speechSynthesis' in window){ pickVoice(); try{ speechSynthesis.onvoiceschanged=pickVoice; }catch(e){} }
+function say(t,force){
+  $('#live').textContent=t;
+  if(!(S.speak||force)) return;
+  try{ if(!('speechSynthesis' in window)) return; speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}]/gu,''));
+    u.lang=voice?voice.lang:'es-ES'; if(voice) u.voice=voice; u.rate=.9; u.pitch=1.05; speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ---------- CONTENIDO ---------- */
+const INFO={
+  sol:{name:'El Sol',emoji:'☀️',facts:[
+    'El Sol es una estrella. Es una enorme bola de gas muy, muy caliente.',
+    'El Sol nos da luz y calor. Sin él, las plantas no podrían crecer.',
+    'El Sol es muchísimo más grande que la Tierra. Si el Sol fuera una pelota de básquet, la Tierra sería tan pequeña como un grano de quinua.',
+    '¡Cuidado! Nunca mires el Sol directamente: puede dañar tus ojos.']},
+  tierra:{name:'La Tierra',emoji:'🌍',facts:[
+    'La Tierra es nuestro planeta. Aquí vivimos las personas, los animales y las plantas.',
+    'La Tierra tiene forma de esfera, como una pelota. Tiene agua, tierra y aire.',
+    'La Tierra gira sobre sí misma. Una vuelta completa dura un día: por eso hay día y noche.',
+    'La Tierra también da vueltas alrededor del Sol. Una vuelta completa dura un año.',
+    'Ecuador está en la mitad de la Tierra, en la línea equinoccial. Busca el punto rojo de Quito.']},
+  luna:{name:'La Luna',emoji:'🌙',facts:[
+    'La Luna es el satélite de la Tierra: da vueltas alrededor de nuestro planeta.',
+    'La Luna no tiene luz propia. Brilla porque refleja la luz del Sol, como un espejo.',
+    'La Luna es más pequeña que la Tierra. Tiene muchos huecos llamados cráteres.',
+    'A veces puedes ver la Luna de día. ¡Búscala en el cielo con tu familia!']}
+};
+const QUIZ=[
+  {q:'¿Cuál de estos astros es una estrella?',o:[['☀️','El Sol',1],['🌍','La Tierra',0],['🌙','La Luna',0]],e:'El Sol es una estrella: tiene luz propia y nos da calor.'},
+  {q:'¿Quién le da luz y calor a la Tierra?',o:[['☀️','El Sol',1],['🌙','La Luna',0],['☁️','Las nubes',0]],e:'La luz y el calor vienen del Sol.'},
+  {q:'¿Por qué hay día y noche?',o:[['🔄','Porque la Tierra gira sobre sí misma',1],['💡','Porque el Sol se apaga en la noche',0],['⛰️','Porque el Sol se esconde detrás de las montañas',0]],e:'El Sol nunca se apaga. La Tierra gira: la mitad que mira al Sol tiene día y la otra mitad tiene noche.'},
+  {q:'¿Qué astro da vueltas alrededor de la Tierra?',o:[['🌙','La Luna',1],['☀️','El Sol',0],['⭐','Las estrellas',0]],e:'La Luna es el satélite de la Tierra y gira a su alrededor.'},
+  {q:'¿Cuál es el más grande?',o:[['☀️','El Sol',1],['🌍','La Tierra',0],['🌙','La Luna',0]],e:'El Sol es el más grande, luego la Tierra y después la Luna. Se ve pequeño porque está muy lejos.'},
+  {q:'¿Por qué brilla la Luna?',o:[['🪞','Porque refleja la luz del Sol',1],['🔥','Porque tiene fuego',0],['💡','Porque tiene focos',0]],e:'La Luna no tiene luz propia: refleja la luz del Sol.'}
+];
+const QUITO={lat:-0.18,lon:-78.47};
+
+/* ---------- ACCESIBILIDAD ---------- */
+function applyPrefs(){
+  document.documentElement.style.setProperty('--fs',S.fs+'px');
+  document.body.classList.toggle('hc',S.hc);
+  $('#bSpeak').setAttribute('aria-pressed',S.speak);
+  $('#bHc').setAttribute('aria-pressed',S.hc);
+  $('#bMotion').setAttribute('aria-pressed',S.reduce);
+  $('#bLite').setAttribute('aria-pressed',S.lite);
+  if(R){ R.setPixelRatio(S.lite?1:Math.min(window.devicePixelRatio||1,2)); resize(); }
+  savePrefs();
+}
+$('#bSpeak').onclick=()=>{S.speak=!S.speak; applyPrefs(); if(S.speak) say('Voz activada.'); else { try{speechSynthesis.cancel();}catch(e){} } };
+$('#bPlus').onclick=()=>{S.fs=Math.min(26,S.fs+2); applyPrefs();};
+$('#bMinus').onclick=()=>{S.fs=Math.max(14,S.fs-2); applyPrefs();};
+$('#bHc').onclick=()=>{S.hc=!S.hc; applyPrefs();};
+$('#bMotion').onclick=()=>{S.reduce=!S.reduce; applyPrefs(); say(S.reduce?'Movimientos automáticos detenidos.':'Movimientos activados.');};
+$('#bLite').onclick=()=>{S.lite=!S.lite; applyPrefs(); say(S.lite?'Modo ligero activado.':'Modo ligero desactivado.');};
+
+/* ---------- 3D BASE ---------- */
+let R=null;
+try{ const c=document.createElement('canvas'); if(!(window.THREE && (c.getContext('webgl2')||c.getContext('webgl')))) throw 0;
+  R=new THREE.WebGLRenderer({antialias:true,alpha:true}); R.outputEncoding=THREE.sRGBEncoding; R.setClearColor(0x000000,0);
+  R.domElement.className='gl'; R.domElement.setAttribute('aria-hidden','true'); $('#stage').insertBefore(R.domElement,$('#stage').firstChild);
+}catch(e){ R=null; }
+const stage=$('#stage');
+let stars=null;
+
+function canvasTex(w,h,draw){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.anisotropy=4; return t; }
+function rnd(seed){ let s=seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+
+const LAND=[
+ [[-168,65],[-140,70],[-95,72],[-80,63],[-62,57],[-56,48],[-66,44],[-76,35],[-81,25],[-83,29],[-97,27],[-97,19],[-88,16],[-84,10],[-80,8],[-78,9],[-86,13],[-92,15],[-105,20],[-112,30],[-117,32],[-124,40],[-125,49],[-133,56],[-148,60],[-164,59]],
+ [[-77,9],[-73,12],[-62,11],[-52,4],[-50,0],[-44,-3],[-35,-6],[-39,-14],[-41,-22],[-48,-26],[-53,-34],[-58,-38],[-63,-41],[-66,-47],[-69,-52],[-68,-55],[-74,-52],[-74,-44],[-73,-37],[-71,-30],[-70,-18],[-76,-14],[-80,-7],[-81,-4],[-80,-1],[-80,1],[-78,3]],
+ [[-55,60],[-44,60],[-22,68],[-18,77],[-30,83],[-60,82],[-72,77]],
+ [[-10,36],[-9,43],[-2,44],[-4,48],[2,51],[8,54],[9,57],[5,62],[14,68],[24,71],[40,68],[60,70],[80,73],[105,78],[140,73],[180,69],[180,64],[163,60],[157,51],[142,54],[140,46],[132,43],[127,39],[122,40],[121,32],[116,23],[108,21],[106,11],[100,13],[103,2],[98,8],[96,17],[90,22],[86,20],[80,15],[77,8],[73,17],[70,22],[66,25],[57,26],[50,30],[56,24],[59,22],[52,16],[44,12],[38,20],[34,28],[35,33],[28,37],[26,40],[23,38],[20,40],[15,45],[18,40],[16,38],[12,44],[7,44],[3,43],[-1,37],[-5,36]],
+ [[-17,15],[-17,21],[-13,28],[-9,32],[-6,36],[10,37],[11,33],[20,31],[25,32],[32,31],[34,28],[43,12],[51,12],[44,2],[40,-3],[40,-15],[35,-24],[32,-29],[20,-35],[17,-29],[12,-17],[13,-6],[9,0],[9,4],[-5,5],[-12,7],[-15,11]],
+ [[114,-22],[122,-18],[129,-15],[136,-12],[142,-11],[146,-19],[153,-25],[151,-34],[146,-39],[138,-35],[131,-31],[115,-34]],
+ [[-6,50],[1,51],[-2,56],[-5,58],[-6,55]],[[130,31],[136,34],[141,36],[142,41],[140,41],[136,36],[131,34]],[[44,-25],[48,-25],[50,-15],[49,-12],[44,-17]],
+ [[109,1],[117,-3],[119,1],[117,7],[113,3]],[[95,5],[98,4],[106,-6],[103,-5]],[[172,-34],[178,-38],[174,-41],[167,-46],[170,-44]],[[-85,22],[-75,20],[-78,22],[-84,23]],[[141,-2],[150,-6],[147,-9],[141,-9]],[[-24,64],[-14,65],[-16,66],[-22,66]]
+];
+const DESERT=[[[-16,18],[-10,27],[0,31],[12,31],[25,30],[32,24],[28,17],[15,15],[0,16]],[[36,30],[47,29],[55,22],[52,17],[44,15],[40,21]],[[118,-20],[134,-19],[140,-26],[130,-30],[120,-27]],[[100,42],[110,44],[118,42],[108,38]]];
+const ANDES=[[-74,10],[-78,4],[-78.5,0],[-79,-4],[-76,-12],[-70,-18],[-69,-24],[-70,-32],[-71,-40],[-72,-48]];
+
+function drawEarth(g,w,h){
+  const P=(lon,lat)=>[(lon+180)/360*w,(90-lat)/180*h];
+  const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#16457a'); gr.addColorStop(.5,'#2a86c8'); gr.addColorStop(1,'#16457a'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+  const poly=(pts,fill)=>{ g.beginPath(); pts.forEach((p,i)=>{const [x,y]=P(p[0],p[1]); i?g.lineTo(x,y):g.moveTo(x,y);}); g.closePath(); g.fillStyle=fill; g.fill(); };
+  g.lineJoin='round';
+  LAND.forEach(p=>{ poly(p,'#4fae55'); g.strokeStyle='#3d8f45'; g.lineWidth=w/400; g.stroke(); });
+  DESERT.forEach(p=>poly(p,'#d7b46a'));
+  const r=rnd(7); for(let i=0;i<900;i++){ g.fillStyle='rgba(30,90,40,'+(r()*.25)+')'; const x=r()*w,y=h*.15+r()*h*.7; g.fillRect(x,y,2,2); }
+  g.strokeStyle='#8a6a3a'; g.lineWidth=w/180; g.beginPath(); ANDES.forEach((p,i)=>{const [x,y]=P(p[0],p[1]); i?g.lineTo(x,y):g.moveTo(x,y);}); g.stroke();
+  g.fillStyle='#f3f8fc'; g.fillRect(0,P(0,-67)[1],w,h); g.fillRect(0,0,w,P(0,80)[1]);
+  g.fillStyle='#4fae55'; [[-91.2,-0.6],[-90.4,-0.7],[-89.6,-0.9],[-90.8,-0.2]].forEach(p=>{const [x,y]=P(p[0],p[1]); g.beginPath(); g.arc(x,y,w/600,0,TAU); g.fill();});
+  g.strokeStyle='rgba(255,230,120,.55)'; g.setLineDash([w/120,w/160]); g.lineWidth=w/700; g.beginPath(); g.moveTo(0,h/2); g.lineTo(w,h/2); g.stroke(); g.setLineDash([]);
+}
+function drawSun(g,w,h){ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#ffcf3f'); gr.addColorStop(.5,'#ffb21f'); gr.addColorStop(1,'#ffcf3f'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+  const r=rnd(3); for(let i=0;i<260;i++){ g.fillStyle=r()<.5?'rgba(255,120,0,.28)':'rgba(255,245,180,.35)'; g.beginPath(); g.arc(r()*w,r()*h,4+r()*16,0,TAU); g.fill(); } }
+function drawMoon(g,w,h){ g.fillStyle='#bdbdbd'; g.fillRect(0,0,w,h); const r=rnd(11);
+  for(let i=0;i<14;i++){ g.fillStyle='rgba(90,90,90,.35)'; g.beginPath(); g.ellipse(r()*w,h*.2+r()*h*.6,20+r()*50,12+r()*30,0,0,TAU); g.fill(); }
+  for(let i=0;i<120;i++){ const x=r()*w,y=r()*h,s=2+r()*9; g.fillStyle='rgba(70,70,70,.5)'; g.beginPath(); g.arc(x,y,s,0,TAU); g.fill(); g.fillStyle='rgba(235,235,235,.5)'; g.beginPath(); g.arc(x-s*.25,y-s*.25,s*.6,0,TAU); g.fill(); } }
+function glowTex(){ return canvasTex(256,256,(g,w,h)=>{ const gr=g.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2); gr.addColorStop(0,'rgba(255,220,120,1)'); gr.addColorStop(.25,'rgba(255,170,40,.55)'); gr.addColorStop(1,'rgba(255,140,0,0)'); g.fillStyle=gr; g.fillRect(0,0,w,h); }); }
+function labelTex(text){ return canvasTex(512,128,(g,w,h)=>{ g.font='bold 64px system-ui,Arial,sans-serif'; const tw=g.measureText(text).width; const bw=Math.min(w-8,tw+70);
+  g.fillStyle='rgba(5,11,31,.78)'; const x=(w-bw)/2; g.beginPath(); if(g.roundRect) g.roundRect(x,14,bw,100,50); else g.rect(x,14,bw,100); g.fill(); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,w/2,66); }); }
+function makeLabel(text,k){ k=k||1; const m=new THREE.SpriteMaterial({map:labelTex(text),depthTest:false,transparent:true,sizeAttenuation:false}); const s=new THREE.Sprite(m); s.scale.set(.2*k,.05*k,1); s.renderOrder=10; return s; }
+function makeStars(n,r){ const g=new THREE.BufferGeometry(); const a=new Float32Array(n*3); const rr=rnd(5);
+  for(let i=0;i<n;i++){ const u=rr()*2-1, t=rr()*TAU, s=Math.sqrt(1-u*u); a[i*3]=r*s*Math.cos(t); a[i*3+1]=r*u; a[i*3+2]=r*s*Math.sin(t); }
+  g.setAttribute('position',new THREE.BufferAttribute(a,3)); return new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:1.6,sizeAttenuation:false,transparent:true,opacity:.85})); }
+function latLonToLocal(lat,lon,rad){ const phi=(lon+180)*D2R, la=lat*D2R; return new THREE.Vector3(-Math.cos(phi)*Math.cos(la)*rad,Math.sin(la)*rad,Math.sin(phi)*Math.cos(la)*rad); }
+
+let TX={};
+function bodies(opts){ // crea Sol, Tierra, Luna reutilizando texturas
+  const o={};
+  o.sun=new THREE.Mesh(new THREE.SphereGeometry(opts.sunR,48,32),new THREE.MeshBasicMaterial({map:TX.sun}));
+  const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:TX.glow,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true})); glow.scale.setScalar(opts.sunR*4.6); o.sun.add(glow);
+  o.earth=new THREE.Mesh(new THREE.SphereGeometry(opts.earthR,64,48),new THREE.MeshStandardMaterial({map:TX.earth,roughness:.85,metalness:0}));
+  const pin=new THREE.Mesh(new THREE.SphereGeometry(opts.earthR*.07,16,12),new THREE.MeshBasicMaterial({color:0xff2d2d}));
+  pin.position.copy(latLonToLocal(QUITO.lat,QUITO.lon,opts.earthR*1.02)); o.earth.add(pin); o.pin=pin;
+  if(opts.quitoLabel){ const ql=makeLabel('📍 Quito',.85); ql.material.depthTest=true; ql.position.copy(latLonToLocal(QUITO.lat+8,QUITO.lon,opts.earthR*1.25)); o.earth.add(ql); o.quitoLabel=ql; }
+  o.moon=new THREE.Mesh(new THREE.SphereGeometry(opts.moonR,40,28),new THREE.MeshStandardMaterial({map:TX.moon,roughness:1,metalness:0}));
+  o.sun.userData.body='sol'; o.earth.userData.body='tierra'; o.moon.userData.body='luna';
+  return o;
+}
+
+/* ---------- ESCENA PRINCIPAL ---------- */
+let M=null, camera=null;
+if(R){
+  TX={earth:canvasTex(2048,1024,drawEarth),sun:canvasTex(512,256,drawSun),moon:canvasTex(512,256,drawMoon),glow:glowTex()};
+  camera=new THREE.PerspectiveCamera(50,1,.05,2000);
+  const sc=new THREE.Scene();
+  stars=makeStars(1600,500); sc.add(stars);
+  const b=bodies({sunR:3,earthR:1,moonR:.27,quitoLabel:true});
+  sc.add(b.sun);
+  sc.add(new THREE.PointLight(0xffffff,1.7,0,0)); const amb=new THREE.AmbientLight(0x6a7bb0,.22); sc.add(amb);
+  const orbit=new THREE.Group(); sc.add(orbit);
+  const sys=new THREE.Group(); sys.position.set(11,0,0); orbit.add(sys);
+  sys.add(b.earth);
+  const moonOrbit=new THREE.Group(); sys.add(moonOrbit); b.moon.position.set(2.1,0,0); moonOrbit.add(b.moon);
+  const ring=(rad,col,op)=>{ const g=new THREE.RingGeometry(rad-.02,rad+.02,128); const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:col,side:THREE.DoubleSide,transparent:true,opacity:op})); m.rotation.x=-Math.PI/2; return m; };
+  const orbitLine=ring(11,0x8fb3ff,.25); sc.add(orbitLine); const moonLine=ring(2.1,0xcccccc,.25); sys.add(moonLine);
+  const lSun=makeLabel('☀️ Sol',1.1); lSun.position.set(0,4.4,0); sc.add(lSun);
+  const lEarth=makeLabel('🌍 Tierra',1); lEarth.position.set(0,1.75,0); sys.add(lEarth);
+  const lMoon=makeLabel('🌙 Luna',.9); lMoon.position.set(0,.65,0); b.moon.add(lMoon);
+  M={scene:sc,amb,b,orbit,sys,moonOrbit,orbitLine,moonLine,lSun,lEarth,lMoon,pick:[b.sun,b.earth,b.moon]};
+}
+const ctl={theta:.35,phi:1.12,r:26,tt:.35,tp:1.12,tr:26,target:new THREE_V(),tTarget:new THREE_V(),follow:null,instant:true};
+function THREE_V(){ return window.THREE?new THREE.Vector3():{x:0,y:0,z:0,copy(){return this},set(){return this}}; }
+function updateCam(dt){
+  if(!M) return;
+  if(ctl.follow){ ctl.follow.getWorldPosition(ctl.tTarget); }
+  const k=(ctl.instant||S.reduce)?1:1-Math.pow(.0025,dt);
+  ctl.theta+=(ctl.tt-ctl.theta)*k; ctl.phi+=(ctl.tp-ctl.phi)*k; ctl.r+=(ctl.tr-ctl.r)*k; ctl.target.lerp(ctl.tTarget,k); ctl.instant=false;
+  const sp=Math.sin(ctl.phi);
+  camera.position.set(ctl.target.x+ctl.r*sp*Math.sin(ctl.theta),ctl.target.y+ctl.r*Math.cos(ctl.phi),ctl.target.z+ctl.r*sp*Math.cos(ctl.theta));
+  camera.lookAt(ctl.target);
+}
+function overview(){ ctl.follow=null; ctl.tTarget.set(4,0,0); ctl.tt=.35; ctl.tp=1.12; ctl.tr=26; }
+function focusBody(key){
+  if(!M) return; const obj={sol:M.b.sun,tierra:M.b.earth,luna:M.b.moon}[key];
+  ctl.follow=obj; ctl.tr={sol:11,tierra:4.2,luna:2}[key]; ctl.tp=1.2;
+}
+
+/* ---------- PANEL EXPLORAR ---------- */
+const F={key:null,i:0};
+function showFact(key,next){
+  const d=INFO[key]; if(!d) return;
+  if(F.key!==key){ F.key=key; F.i=0; } else if(next){ F.i=(F.i+1)%d.facts.length; }
+  $('#factCard').hidden=false; $('#fEmoji').textContent=d.emoji; $('#fName').textContent=d.name; $('#fText').textContent=d.facts[F.i];
+  $('#fDots').innerHTML=d.facts.map((_,i)=>'<i class="'+(i===F.i?'on':'')+'"></i>').join('');
+  $$('.pick button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.body===key));
+  say(d.name+'. '+d.facts[F.i]);
+}
+$$('.pick button').forEach(b=>b.onclick=()=>{ showFact(b.dataset.body); focusBody(b.dataset.body); });
+$('#fNext').onclick=()=>F.key&&showFact(F.key,true);
+$('#fListen').onclick=()=>F.key&&say(INFO[F.key].name+'. '+INFO[F.key].facts[F.i],true);
+$('#bOverview').onclick=()=>{ overview(); $$('.pick button').forEach(b=>b.setAttribute('aria-pressed','false')); };
+
+/* ---------- DIA Y NOCHE ---------- */
+const DN={hour:14,auto:false,anim:null,poe:null};
+const pin0=latLonToLocalRaw(QUITO.lat,QUITO.lon);
+function latLonToLocalRaw(lat,lon){ const phi=(lon+180)*D2R; return {x:-Math.cos(phi),z:Math.sin(phi)}; }
+const angle0=Math.atan2(-pin0.z,pin0.x);
+function wrap24(h){ return ((h%24)+24)%24; }
+function dayState(h){ h=wrap24(h); if(h>=6.5&&h<=17.5) return 'dia'; if(h>=5.5&&h<6.5) return 'amanecer'; if(h>17.5&&h<=18.5) return 'atardecer'; return 'noche'; }
+function hourWords(h){ h=wrap24(h); let H=Math.round(h)%24; if(H===0) return 'medianoche'; if(H===12) return 'las 12 del día';
+  const n=H>12?H-12:H; const part=H<12?(H<6?'de la madrugada':'de la mañana'):(H<19?'de la tarde':'de la noche'); return (n===1?'la 1 ':'las '+n+' ')+part; }
+function routine(h){ h=wrap24(h);
+  if(h>=5.5&&h<6.5) return '🌅 Amanece. ¡Hora de levantarse!';
+  if(h>=6.5&&h<7.5) return '🥣 Desayuno y salida a la escuela.';
+  if(h>=7.5&&h<12.5) return '🏫 Estás en la escuela aprendiendo.';
+  if(h>=12.5&&h<14) return '🍲 Hora del almuerzo.';
+  if(h>=14&&h<17.5) return '⚽ Tareas y juego.';
+  if(h>=17.5&&h<18.5) return '🌇 Atardece: el Sol «se va» porque Quito gira hacia la noche.';
+  if(h>=18.5&&h<21) return '🍽️ Merienda en casa.';
+  return '😴 Hora de dormir. En el otro lado de la Tierra es de día.'; }
+function setHour(h,silent){
+  DN.hour=h; const hh=wrap24(h);
+  if(M){ const E=new THREE.Vector3(); M.b.earth.getWorldPosition(E); const sunAng=Math.atan2(E.z,-E.x); M.b.earth.rotation.y=sunAng+(hh-12)*15*D2R-angle0; }
+  const st=dayState(hh);
+  const map={dia:['☀️','de día'],noche:['🌙','de noche'],amanecer:['🌅','amanecer'],atardecer:['🌇','atardecer']};
+  $('#dnIcon').textContent=map[st][0]; $('#dnState').textContent=map[st][1];
+  $('#dnHour').textContent='Hora aproximada: '+hourWords(hh);
+  $('#dnRoutine').textContent=routine(hh);
+  const sl=$('#dnSlider'); if(document.activeElement!==sl) sl.value=hh.toFixed(2);
+  drawSky(hh); if(S.view2d||!R) draw2D(hh); else if(S.mode==='dianoche') draw2D(hh,true);
+  if(!silent && st!==DN.lastSt){ DN.lastSt=st; if(!DN.auto&&!DN.anim) say('En Quito es '+map[st][1]+'.'); }
+  DN.lastSt=st;
+}
+function drawSky(h){
+  const c=$('#sky'), g=c.getContext('2d'), w=c.width, H=c.height; const st=dayState(h);
+  const cols={dia:['#5ec1ff','#bfe8ff'],amanecer:['#ff9e6d','#ffd7a3'],atardecer:['#7b4a9e','#ff9a5c'],noche:['#071229','#1a2b55']}[st];
+  const gr=g.createLinearGradient(0,0,0,H); gr.addColorStop(0,cols[0]); gr.addColorStop(1,cols[1]); g.fillStyle=gr; g.fillRect(0,0,w,H);
+  if(st==='noche'||st==='atardecer'){ const r=rnd(9); g.fillStyle='rgba(255,255,255,'+(st==='noche'?.9:.4)+')'; for(let i=0;i<60;i++){ g.fillRect(r()*w,r()*H*.6,2,2); } }
+  if(h>=5.6&&h<=18.4){ const p=(h-6)/12; const x=w*.08+p*w*.84, y=H*.85-Math.sin(Math.PI*Math.max(0,Math.min(1,p)))*H*.65;
+    g.fillStyle='rgba(255,220,90,.35)'; g.beginPath(); g.arc(x,y,34,0,TAU); g.fill(); g.fillStyle='#ffd23f'; g.beginPath(); g.arc(x,y,20,0,TAU); g.fill(); }
+  g.fillStyle=st==='noche'?'#0b1a12':'#2f6b3a'; g.beginPath(); g.moveTo(0,H);
+  const m=[[0,.78],[.12,.62],[.22,.7],[.34,.42],[.42,.52],[.5,.36],[.58,.5],[.7,.6],[.82,.5],[.92,.66],[1,.6]]; m.forEach(p=>g.lineTo(p[0]*w,p[1]*H)); g.lineTo(w,H); g.fill();
+  g.fillStyle=st==='noche'?'#141c2c':'#c9b48f'; g.fillRect(0,H*.86,w,H*.14);
+  if(st==='noche'){ const r=rnd(4); for(let i=0;i<70;i++){ g.fillStyle='rgba(255,214,120,.9)'; g.fillRect(r()*w,H*.88+r()*H*.1,3,3); } }
+  g.fillStyle=st==='noche'?'#fff':'#1b2440'; g.font='bold 22px system-ui,sans-serif'; g.fillText('Cielo de Quito',14,30);
+}
+const c2main=$('#dn2d'), cMini=$('#mini');
+function draw2D(h,mini){
+  const c2=mini?cMini:c2main; const r=c2.getBoundingClientRect(); const dpr=Math.min(window.devicePixelRatio||1,2); if(r.width<2) return;
+  if(c2.width!==Math.round(r.width*dpr)){ c2.width=Math.round(r.width*dpr); c2.height=Math.round(r.height*dpr); }
+  const g=c2.getContext('2d'), w=c2.width, H=c2.height; g.clearRect(0,0,w,H);
+  const s=Math.min(w,H); const cx=w*.62, cy=H/2, R2=s*.28;
+  g.fillStyle='#ffd23f'; g.beginPath(); g.arc(w*.06,cy,s*.16,0,TAU); g.fill();
+  g.strokeStyle='rgba(255,220,90,.6)'; g.lineWidth=s*.008; for(let i=-3;i<=3;i++){ g.beginPath(); g.moveTo(w*.06+s*.2,cy+i*s*.07); g.lineTo(cx-R2-s*.05,cy+i*s*.07); g.stroke(); }
+  g.fillStyle='#2a86c8'; g.beginPath(); g.arc(cx,cy,R2,0,TAU); g.fill();
+  g.fillStyle='rgba(5,11,31,.72)'; g.beginPath(); g.arc(cx,cy,R2,-Math.PI/2,Math.PI/2); g.closePath(); g.fill();
+  const a=Math.PI+(wrap24(h)-12)*15*D2R; // visto desde el polo norte: gira en sentido antihorario
+  const px=cx+Math.cos(a)*R2, py=cy-Math.sin(a)*R2;
+  g.fillStyle='#ff2d2d'; g.beginPath(); g.arc(px,py,s*.03,0,TAU); g.fill();
+  g.fillStyle='#fff'; g.font='bold '+Math.round(s*.05)+'px system-ui,sans-serif'; g.textAlign='center';
+  g.fillText('Quito',px+Math.cos(a)*s*.08,py-Math.sin(a)*s*.08+s*.02);
+  g.fillText('☀️ Sol',w*.06+s*.02,cy+s*.25);
+  g.font=Math.round(s*.042)+'px system-ui,sans-serif'; g.fillStyle='#ffe08a'; g.fillText('DÍA',cx-R2*.5,cy-R2-s*.04); g.fillStyle='#9fb4ff'; g.fillText('NOCHE',cx+R2*.5,cy-R2-s*.04);
+  g.strokeStyle='#fff'; g.lineWidth=s*.008; g.beginPath(); g.arc(cx,cy,R2+s*.06,-.4,-1.2,true); g.stroke();
+  g.fillStyle='#fff'; g.fillText('↺ la Tierra gira',cx,cy+R2+s*.1);
+  if(mini){ g.textAlign='left'; g.fillStyle='#9fb4ff'; g.font='bold '+Math.round(s*.065)+'px system-ui,sans-serif'; g.fillText('Vista desde arriba',s*.04,s*.09); }
+}
+$('#dnSlider').addEventListener('input',e=>{ DN.auto=false; updPlay(); setHour(parseFloat(e.target.value)); });
+function updPlay(){ $('#dnPlay').textContent=DN.auto?'⏸ Pausar':'▶ Girar sola'; }
+$('#dnPlay').onclick=()=>{ DN.auto=!DN.auto; DN.anim=null; updPlay(); say(DN.auto?'La Tierra gira sola. Mira qué pasa con Quito.':'Pausa.'); };
+$('#dn2dBtn').onclick=()=>{ S.view2d=!S.view2d; $('#dn2dBtn').setAttribute('aria-pressed',S.view2d); enterMode(S.mode); setHour(DN.hour,true); };
+$('#poeStart').onclick=()=>{
+  const start=(dayState(DN.hour)==='dia'||dayState(DN.hour)==='amanecer')?13:22; DN.auto=false; updPlay(); setHour(start,true);
+  const turn=Math.random()<.5?12:24; DN.poe={turn,start};
+  const now=dayState(start)==='dia'?'de día':'de noche';
+  const txt='Ahora en Quito es '+now+'. La Tierra va a dar '+(turn===12?'media vuelta':'una vuelta completa')+'. ¿Qué habrá en Quito: día o noche?';
+  $('#poeQ').textContent=txt; $('#poeR').textContent=''; $('#poeOpts').hidden=false; $('#poeStart').hidden=true; say(txt);
+};
+$$('#poeOpts button').forEach(b=>b.onclick=()=>{
+  if(!DN.poe) return; DN.poe.guess=b.dataset.p; $('#poeOpts').hidden=true;
+  $('#poeR').textContent='👀 Observa…'; say('Observa.');
+  DN.anim={from:DN.poe.start,to:DN.poe.start+DN.poe.turn,t:0,dur:S.reduce?0.01:4};
+});
+function finishPoe(){
+  const p=DN.poe; if(!p) return; const res=dayState(p.start+p.turn)==='dia'?'dia':'noche'; const ok=p.guess===res;
+  const exp=p.turn===12?'Con media vuelta, Quito pasó al otro lado: el lado que '+(res==='noche'?'no mira':'mira')+' al Sol.':'Con una vuelta completa, Quito volvió al mismo lugar. ¡Una vuelta completa es un día entero!';
+  const txt=(ok?'✅ ¡Tu predicción se cumplió! ':'🤔 Pasó algo diferente a lo que predijiste. ')+'Ahora es '+(res==='dia'?'de día':'de noche')+'. '+exp+' ¿Cómo se lo explicarías a un compañero?';
+  $('#poeR').textContent=txt; say(txt); $('#poeStart').hidden=false; $('#poeStart').textContent='Predecir otra vez'; DN.poe=null;
+}
+
+/* ---------- RETO ---------- */
+const Q={i:0,order:[],ans:[]};
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function startQuiz(){ Q.i=0; Q.order=QUIZ.map((_,i)=>i); Q.ans=[]; showQ(); }
+function showQ(){
+  if(Q.i>=QUIZ.length){ const ok=Q.ans.filter(Boolean).length;
+    $('#qText').textContent='🎉 ¡Muy bien, equipo explorador!'; $('#qNum').textContent=''; $('#qOpts').innerHTML='';
+    $('#qFeed').textContent='Respondieron bien '+ok+' de '+QUIZ.length+'. Lo importante es que ahora pueden explicar por qué hay día y noche.';
+    $('#qNext').hidden=false; $('#qNext').textContent='🔁 Jugar otra vez'; $('#qListen').hidden=true; dots(); say($('#qText').textContent+' '+$('#qFeed').textContent); return; }
+  const d=QUIZ[Q.order[Q.i]]; $('#qListen').hidden=false;
+  $('#qNum').textContent='Pregunta '+(Q.i+1)+' de '+QUIZ.length; $('#qText').textContent=d.q; $('#qFeed').textContent=''; $('#qNext').hidden=true; $('#qNext').textContent='Siguiente ▶';
+  const box=$('#qOpts'); box.innerHTML='';
+  shuffle(d.o).forEach(o=>{ const b=document.createElement('button'); b.innerHTML='<span class="em" aria-hidden="true">'+o[0]+'</span><span>'+o[1]+'</span>'; b.dataset.ok=o[2];
+    b.onclick=()=>answer(b,d); box.appendChild(b); });
+  dots(); say(d.q+' '+d.o.map(o=>o[1]).join(', o, ')+'?');
+}
+function answer(b,d){
+  if(Q.ans.length>Q.i) return; const ok=b.dataset.ok==='1'; Q.ans.push(ok);
+  $$('#qOpts button').forEach(x=>{ x.disabled=true; if(x.dataset.ok==='1') x.classList.add('ok'); }); if(!ok) b.classList.add('no');
+  const txt=(ok?'✅ ¡Correcto! ':'💡 Casi. ')+d.e; $('#qFeed').textContent=txt; say(txt); $('#qNext').hidden=false; dots();
+}
+function dots(){ $('#qDots').innerHTML=QUIZ.map((_,i)=>'<i class="'+(i<Q.ans.length?(Q.ans[i]?'ok':'no'):(i===Q.i?'on':''))+'"></i>').join(''); }
+$('#qNext').onclick=()=>{ if(Q.i>=QUIZ.length){ startQuiz(); return; } Q.i++; showQ(); };
+$('#qListen').onclick=()=>{ const d=QUIZ[Q.order[Q.i]]; if(d) say(d.q+' '+d.o.map(o=>o[1]).join(', o, ')+'?',true); };
+
+/* ---------- ORIENTACIÓN DEL CELULAR ---------- */
+const ORI={on:false,got:false,a:0,b:0,g:0};
+function onOri(e){ if(e.alpha==null&&e.beta==null) return; ORI.a=e.alpha||0; ORI.b=e.beta||0; ORI.g=e.gamma||0; ORI.got=true; }
+async function startOri(){
+  try{ if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){ const r=await DeviceOrientationEvent.requestPermission(); if(r!=='granted') return false; } }catch(e){ return false; }
+  if(!ORI.on){ window.addEventListener('deviceorientation',onOri,true); ORI.on=true; } return true;
+}
+let _e,_q1,_q0,_z;
+function applyOri(cam){
+  if(!_e){ _e=new THREE.Euler(); _q1=new THREE.Quaternion(-Math.sqrt(.5),0,0,Math.sqrt(.5)); _q0=new THREE.Quaternion(); _z=new THREE.Vector3(0,0,1); }
+  const o=((screen.orientation&&screen.orientation.angle)||window.orientation||0)*D2R;
+  _e.set(ORI.b*D2R,ORI.a*D2R,-ORI.g*D2R,'YXZ'); cam.quaternion.setFromEuler(_e); cam.quaternion.multiply(_q1); cam.quaternion.multiply(_q0.setFromAxisAngle(_z,-o));
+}
+const LOOK={yaw:0,pitch:0};
+function applyLook(cam){ cam.rotation.set(LOOK.pitch,LOOK.yaw,0,'YXZ'); }
+function headingYaw(cam){ const f=new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion); return Math.atan2(-f.x,-f.z); }
+
+/* ---------- RV ---------- */
+let V=null;
+if(R){
+  const sc=new THREE.Scene(); sc.add(makeStars(2200,400));
+  const root=new THREE.Group(); sc.add(root);
+  const b=bodies({sunR:4,earthR:1.4,moonR:.42,quitoLabel:true});
+  b.sun.position.set(-14,1,-20); root.add(b.sun);
+  const pl=new THREE.PointLight(0xffffff,1.8,0,0); pl.position.copy(b.sun.position); root.add(pl); sc.add(new THREE.AmbientLight(0x6a7bb0,.25));
+  const es=new THREE.Group(); es.position.set(5,0,-9); root.add(es); es.add(b.earth);
+  const mo=new THREE.Group(); es.add(mo); b.moon.position.set(3,0,0); mo.add(b.moon);
+  const l1=makeLabel('☀️ Sol',1.2); l1.position.set(-14,6.6,-20); root.add(l1);
+  const l2=makeLabel('🌍 Tierra',1); l2.position.set(0,2.3,0); es.add(l2);
+  const l3=makeLabel('🌙 Luna',.9); l3.position.set(0,.9,0); b.moon.add(l3);
+  const cam=new THREE.PerspectiveCamera(70,1,.05,1000);
+  V={scene:sc,root,b,es,mo,cam,stereo:false,aligned:false,gazeObj:null,gazeT:0,cool:0,fi:{sol:0,tierra:0,luna:0},stereoCam:new THREE.StereoCamera(),ray:new THREE.Raycaster(),targets:[b.sun,b.earth,b.moon]};
+  V.stereoCam.aspect=.5; V.stereoCam.eyeSep=.064;
+}
+async function enterVR(stereo){
+  if(!V) return; V.stereo=stereo; V.aligned=false; LOOK.yaw=0; LOOK.pitch=0;
+  $('#vrui').hidden=false; $('#vrui').classList.toggle('stereo',stereo);
+  await startOri();
+  try{ if(stage.requestFullscreen) await stage.requestFullscreen(); else throw 0; }catch(e){ stage.classList.add('immersive'); }
+  try{ if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock('landscape'); }catch(e){}
+  resize(); say(stereo?'Pon el celular en el visor. Mira un astro dos segundos para escuchar un dato.':'Mueve el celular a tu alrededor. Mira un astro dos segundos para escuchar un dato.');
+}
+function exitVR(){
+  try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} stage.classList.remove('immersive');
+  try{ screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock(); }catch(e){}
+  if(V){ V.stereo=false; } $('#vrui').classList.remove('stereo'); $$('.vrmsg').forEach(m=>m.style.display='none'); resize();
+}
+$('#vrMono').onclick=()=>enterVR(false);
+$('#vrStereo').onclick=()=>enterVR(true);
+$('#vrExit').onclick=()=>exitVR();
+$('#vrCenter').onclick=()=>{ if(V){ V.aligned=false; LOOK.yaw=0; LOOK.pitch=0; } };
+document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement){ stage.classList.remove('immersive'); if(V&&V.stereo){ V.stereo=false; $('#vrui').classList.remove('stereo'); } } setTimeout(resize,50); });
+function vrMsg(t){ $$('.vrmsg').forEach(m=>{ m.textContent=t; m.style.display='block'; }); clearTimeout(vrMsg.t); vrMsg.t=setTimeout(()=>$$('.vrmsg').forEach(m=>m.style.display='none'),7000); }
+function renderVR(dt){
+  const cam=V.cam;
+  if(ORI.got){ applyOri(cam); if(!V.aligned){ V.root.rotation.y=headingYaw(cam); V.aligned=true; } } else { applyLook(cam); if(!V.aligned){ V.root.rotation.y=0; V.aligned=true; } }
+  const sp=S.reduce?0:1; V.b.earth.rotation.y+=dt*.4*sp; V.mo.rotation.y+=dt*.35*sp; V.b.sun.rotation.y+=dt*.04*sp;
+  cam.updateMatrixWorld(); V.ray.setFromCamera({x:0,y:0},cam);
+  const hit=V.ray.intersectObjects(V.targets,false)[0]; const obj=hit?hit.object:null;
+  if(V.cool>0) V.cool-=dt;
+  if(obj&&obj===V.gazeObj&&V.cool<=0){ V.gazeT+=dt; } else { V.gazeT=0; V.gazeObj=obj; }
+  const p=Math.min(1,V.gazeT/1.8); $$('.ret').forEach(r=>r.style.setProperty('--p',p));
+  if(p>=1){ const k=obj.userData.body, d=INFO[k]; const t=d.emoji+' '+d.facts[V.fi[k]%d.facts.length]; V.fi[k]++; vrMsg(t); say(d.name+'. '+d.facts[(V.fi[k]-1)%d.facts.length]); V.gazeT=0; V.cool=4; }
+  if(V.stereo){ const size=R.getSize(new THREE.Vector2()); V.stereoCam.update(cam); R.setScissorTest(true);
+    R.setScissor(0,0,size.x/2,size.y); R.setViewport(0,0,size.x/2,size.y); R.render(V.scene,V.stereoCam.cameraL);
+    R.setScissor(size.x/2,0,size.x/2,size.y); R.setViewport(size.x/2,0,size.x/2,size.y); R.render(V.scene,V.stereoCam.cameraR);
+    R.setScissorTest(false); R.setViewport(0,0,size.x,size.y);
+  } else R.render(V.scene,cam);
+}
+
+/* ---------- RA ---------- */
+let A=null, stream=null;
+if(R){
+  const sc=new THREE.Scene(); const root=new THREE.Group(); sc.add(root);
+  const b=bodies({sunR:.35,earthR:.6,moonR:.16,quitoLabel:true});
+  b.sun.position.set(-2.6,.5,-.6); root.add(b.sun);
+  const pl=new THREE.PointLight(0xffffff,1.9,0,0); pl.position.copy(b.sun.position); root.add(pl); sc.add(new THREE.AmbientLight(0x8090c0,.28));
+  root.add(b.earth); const mo=new THREE.Group(); root.add(mo); b.moon.position.set(1.25,0,0); mo.add(b.moon);
+  const l2=makeLabel('🌍 Tierra',1); l2.position.set(0,1.05,0); root.add(l2);
+  const l3=makeLabel('🌙 Luna',.9); l3.position.set(0,.36,0); b.moon.add(l3);
+  const l1=makeLabel('☀️ Sol',.9); l1.position.set(-2.6,1.1,-.6); root.add(l1);
+  const cam=new THREE.PerspectiveCamera(60,1,.01,100);
+  A={scene:sc,root,b,mo,cam,dist:3.2,scale:1,placed:false,targets:[b.sun,b.earth,b.moon],ray:new THREE.Raycaster(),fi:{sol:0,tierra:0,luna:0},dragYaw:0};
+}
+function placeAR(){ if(!A) return; const cam=A.cam; const f=new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion); A.root.position.copy(cam.position).addScaledVector(f,A.dist);
+  A.root.rotation.y=headingYaw(cam); A.placed=true; }
+async function startCam(){
+  $('#arMsg').textContent='Abriendo la cámara…';
+  try{ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('no');
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+    const v=$('#arVideo'); v.srcObject=stream; v.hidden=false; await v.play(); $('#arPhoto').hidden=true;
+    await startOri(); A.placed=false; $('#arMsg').textContent='Cámara lista. Mueve el celular despacio: la Tierra se queda en su lugar. Toca un astro para escuchar un dato.'; say('Cámara lista. Toca un astro para escuchar un dato.');
+  }catch(e){ $('#arMsg').textContent='No se pudo abrir la cámara aquí. Usa el botón «Usar una foto» con una foto del aula sin personas, o abre el archivo .html descargado en Chrome.'; say('No se pudo abrir la cámara. Puedes usar una foto del aula.'); }
+}
+function stopCam(){ if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } const v=$('#arVideo'); v.srcObject=null; v.hidden=true; }
+$('#arCam').onclick=()=>startCam();
+$('#arStop').onclick=()=>{ stopCam(); $('#arPhoto').hidden=true; $('#arMsg').textContent='Cámara cerrada.'; };
+$('#arFile').onchange=e=>{ const f=e.target.files&&e.target.files[0]; if(!f) return; stopCam(); const img=$('#arPhoto'); if(img.dataset.url) URL.revokeObjectURL(img.dataset.url);
+  const u=URL.createObjectURL(f); img.dataset.url=u; img.src=u; img.hidden=false; A&&(A.placed=false); $('#arMsg').textContent='Foto puesta de fondo. Arrastra para girar la escena y toca un astro.'; };
+$('#arBig').onclick=()=>{ if(A){ A.scale=Math.min(2.5,A.scale*1.2); } };
+$('#arSmall').onclick=()=>{ if(A){ A.scale=Math.max(.4,A.scale/1.2); } };
+$('#arCenter').onclick=()=>{ if(A){ A.placed=false; } };
+function renderAR(dt){
+  const cam=A.cam; cam.position.set(0,0,0);
+  if(ORI.got&&stream) applyOri(cam); else cam.quaternion.identity();
+  if(!A.placed) placeAR();
+  A.root.scale.setScalar(A.scale);
+  const sp=S.reduce?0:1; A.b.earth.rotation.y+=dt*.35*sp; A.mo.rotation.y+=dt*.4*sp;
+  R.render(A.scene,cam);
+}
+function arFact(k){ const d=INFO[k]; const t=d.facts[A.fi[k]%d.facts.length]; A.fi[k]++; $('#arFact').hidden=false; $('#arFactT').textContent=d.emoji+' '+d.name+': '+t; say(d.name+'. '+t); }
+
+/* ---------- PUNTERO / GESTOS ---------- */
+const ptr=new Map(); let down=null, moved=0, pinch=0;
+const ray=R?new THREE.Raycaster():null;
+function ndc(x,y){ const r=stage.getBoundingClientRect(); return {x:((x-r.left)/r.width)*2-1,y:-((y-r.top)/r.height)*2+1}; }
+stage.addEventListener('pointerdown',e=>{ if(e.target.closest('button,input,label,a')) return; try{stage.setPointerCapture(e.pointerId);}catch(_){} ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptr.size===1){ down={x:e.clientX,y:e.clientY}; moved=0; } if(ptr.size===2){ const [a,b]=[...ptr.values()]; pinch=Math.hypot(a.x-b.x,a.y-b.y); } });
+stage.addEventListener('pointermove',e=>{ if(!ptr.has(e.pointerId)) return; const p=ptr.get(e.pointerId); const dx=e.clientX-p.x, dy=e.clientY-p.y; p.x=e.clientX; p.y=e.clientY;
+  if(ptr.size===1){ moved+=Math.abs(dx)+Math.abs(dy); onDrag(dx,dy); } else if(ptr.size===2){ const [a,b]=[...ptr.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); if(pinch>0) onZoom(d/pinch); pinch=d; } });
+function up(e){ if(!ptr.has(e.pointerId)) return; ptr.delete(e.pointerId); if(ptr.size===0&&down&&moved<10) onTap(e.clientX,e.clientY); if(ptr.size===0) down=null; }
+stage.addEventListener('pointerup',up); stage.addEventListener('pointercancel',e=>{ptr.delete(e.pointerId);});
+stage.addEventListener('wheel',e=>{ e.preventDefault(); onZoom(e.deltaY>0?.9:1.1); },{passive:false});
+function onDrag(dx,dy){
+  const m=S.mode;
+  if(m==='dianoche'){ if(DN.anim) return; DN.auto=false; updPlay(); setHour(DN.hour+dx*.05); return; }
+  if(m==='explorar'||m==='reto'){ ctl.tt-=dx*.006; ctl.tp=Math.max(.25,Math.min(Math.PI-.25,ctl.tp-dy*.006)); return; }
+  if(m==='rv'&&!ORI.got){ LOOK.yaw+=dx*.005; LOOK.pitch=Math.max(-1.4,Math.min(1.4,LOOK.pitch+dy*.005)); return; }
+  if(m==='ra'&&A){ A.root.rotation.y+=dx*.01; }
+}
+function onZoom(f){ if(S.mode==='explorar'||S.mode==='reto'){ ctl.tr=Math.max(1.6,Math.min(60,ctl.tr/f)); } else if(S.mode==='ra'&&A){ A.scale=Math.max(.4,Math.min(2.5,A.scale*f)); } }
+function onTap(x,y){
+  if(!R) return; const n=ndc(x,y);
+  if(S.mode==='explorar'&&M){ ray.setFromCamera(n,camera); const h=ray.intersectObjects(M.pick,false)[0]; if(h){ const k=h.object.userData.body; showFact(k,F.key===k); focusBody(k); } }
+  else if(S.mode==='ra'&&A){ ray.setFromCamera(n,A.cam); const h=ray.intersectObjects(A.targets,false)[0]; if(h) arFact(h.object.userData.body); }
+}
+
+/* ---------- MODOS ---------- */
+function enterMode(m){
+  const prev=S.mode; S.mode=m;
+  if(prev==='ra'&&m!=='ra'){ stopCam(); $('#arPhoto').hidden=true; }
+  if(prev==='rv'&&m!=='rv'){ exitVR(); }
+  $$('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.mode===m));
+  $$('.panel').forEach(p=>p.hidden=p.dataset.panel!==m);
+  document.body.classList.toggle('no-stage',m==='guia');
+  $('#vrui').hidden=m!=='rv';
+  $('#hudTap').hidden=!(m==='explorar'||m==='ra');
+  const use2d=(m==='dianoche')&&(S.view2d||!R);
+  $('#dn2d').hidden=!use2d; $('#mini').hidden=!(m==='dianoche'&&!use2d); $('#hudDN').hidden=!(m==='dianoche'&&!use2d&&R);
+  $('#no3d').hidden=!!R||m==='dianoche'||m==='guia';
+  $('#scaleNote').hidden=!(m==='explorar'||m==='reto'||m==='dianoche'||m==='rv');
+  if(M){
+    const inMain=(m==='explorar'||m==='reto'||m==='dianoche');
+    M.b.moon.visible=m!=='dianoche'; M.moonLine.visible=m!=='dianoche'; M.orbitLine.visible=m!=='dianoche';
+    M.lSun.visible=M.lEarth.visible=m!=='dianoche'; M.amb.intensity=m==='dianoche'?.07:.22; M.b.quitoLabel.visible=m==='dianoche'||m==='explorar';
+    if(m==='dianoche'){ M.orbit.rotation.y=0; M.sys.updateMatrixWorld(true); ctl.follow=M.b.earth; ctl.tt=-10*D2R; ctl.tp=1.25; ctl.tr=4.4; ctl.instant=prev!=='dianoche'; setHour(DN.hour,true); }
+    else if(prev==='dianoche'&&inMain){ overview(); ctl.instant=true; }
+    if(m==='reto'){ overview(); }
+  }
+  if(m==='dianoche') setHour(DN.hour,true);
+  if(m==='reto'&&(Q.order.length===0)) startQuiz();
+  resize();
+}
+$$('.tab').forEach(b=>b.onclick=()=>{ enterMode(b.dataset.mode); });
+document.addEventListener('keydown',e=>{ if(S.mode==='dianoche'&&(e.key==='ArrowLeft'||e.key==='ArrowRight')&&document.activeElement===document.body){ setHour(DN.hour+(e.key==='ArrowRight'?.5:-.5)); } });
+
+/* ---------- BUCLE ---------- */
+function resize(){ if(!R) { if(S.mode==='dianoche') draw2D(DN.hour); return; } const r=stage.getBoundingClientRect(); const w=Math.max(1,r.width), h=Math.max(1,r.height);
+  R.setSize(w,h,false); R.domElement.style.width=w+'px'; R.domElement.style.height=h+'px';
+  [camera,V&&V.cam,A&&A.cam].forEach(c=>{ if(c){ c.aspect=w/h; c.updateProjectionMatrix(); } });
+  if(S.mode==='dianoche'&&(S.view2d)) draw2D(DN.hour); }
+try{ new ResizeObserver(resize).observe(stage); }catch(e){ window.addEventListener('resize',resize); }
+let last=performance.now();
+function frame(now){
+  requestAnimationFrame(frame); const dt=Math.min(.1,(now-last)/1000); last=now;
+  if(document.hidden) return;
+  if(S.mode==='dianoche'){
+    if(DN.anim){ DN.anim.t+=dt; const k=Math.min(1,DN.anim.t/DN.anim.dur); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; setHour(DN.anim.from+(DN.anim.to-DN.anim.from)*e,true); if(k>=1){ DN.anim=null; finishPoe(); } }
+    else if(DN.auto) setHour(DN.hour+dt*(S.reduce?.6:1.5),true);
+  }
+  if(!R||S.mode==='guia') return;
+  if(S.mode==='rv'&&V){ renderVR(dt); return; }
+  if(S.mode==='ra'&&A){ renderAR(dt); return; }
+  if(S.mode==='dianoche'&&S.view2d) return;
+  if(M){ const sp=(S.reduce||S.mode==='dianoche')?0:1;
+    M.orbit.rotation.y+=dt*.05*sp; M.moonOrbit.rotation.y+=dt*.45*sp; M.b.earth.rotation.y+=dt*.5*sp; M.b.sun.rotation.y+=dt*.04*sp;
+    if(S.mode==='reto'&&!S.reduce) ctl.tt+=dt*.03;
+    updateCam(dt); R.render(M.scene,camera); }
+}
+applyPrefs(); overview(); ctl.instant=true; enterMode('explorar'); setHour(14,true); requestAnimationFrame(frame);
+if(!R){ $('#no3d').hidden=false; }
+})();
+</script>
+</body>
+</html>
