@@ -340,9 +340,14 @@ function savePrefs(){ try{ localStorage.setItem('stl_prefs',JSON.stringify({spea
 const VOICES={guia:{pitch:1.08,rate:.98},sol:{pitch:.78,rate:.92},tierra:{pitch:1.12,rate:1},luna:{pitch:1.38,rate:.9}};
 let voices=[], voice=null;
 function scoreVoice(v){ const l=(v.lang||'').replace('_','-').toLowerCase(), n=(v.name||'').toLowerCase(); if(!l.startsWith('es')) return -1;
-  let sc=10; if(/es-(ec|419|us|mx|co|pe|cl|ar|ve)/.test(l)) sc+=3; else if(l==='es-es') sc+=1;
-  if(/natural|neural|online|premium|enhanced|mejorad|google|siri|paulina|dalia|sabina|elena|monica|mónica/.test(n)) sc+=5;
-  if(/espeak|compact|robot/.test(n)) sc-=8; if(v.localService) sc+=1; return sc; }
+  let sc=10;
+  if(l==='es-ec') sc+=4; else if(/es-(419|us|mx|co|pe|cl|ar|ve|bo)/.test(l)) sc+=3; else if(l==='es-es') sc+=1;
+  if(/natural|neural|online/.test(n)) sc+=9;            // voces neuronales (Edge, Windows 11)
+  else if(/google/.test(n)) sc+=7;                       // voces de Google (Chrome, Android)
+  else if(/premium|enhanced|mejorad|siri/.test(n)) sc+=6; // voces mejoradas (Apple)
+  if(/espeak|compact|robot/.test(n)) sc-=8;
+  return sc; }
+function bestLocal(){ return voices.find(v=>v.localService)||null; }
 function loadVoices(){ try{ voices=speechSynthesis.getVoices().filter(v=>scoreVoice(v)>=0).sort((a,b)=>scoreVoice(b)-scoreVoice(a)); }catch(e){ voices=[]; }
   voice=voices.find(v=>v.name===S.voiceName)||voices[0]||null; if(typeof fillVoiceUI==='function') fillVoiceUI(); }
 if('speechSynthesis' in window){ loadVoices(); try{ speechSynthesis.addEventListener('voiceschanged',loadVoices); }catch(e){ speechSynthesis.onvoiceschanged=loadVoices; } }
@@ -371,7 +376,10 @@ function say(input,opt){
       u.rate=Math.max(.5,Math.min(1.6,pr.rate*S.rate)); u.pitch=pr.pitch; u.volume=1;
       u.onstart=()=>{ if(id!==sayId) return; clearHL(); if(it.hl) it.hl.classList.add('reading'); };
       u.onend=()=>{ if(id===sayId&&i===speakable.length-1) clearHL(); };
-      u.onerror=u.onend; speechSynthesis.speak(u);
+      u.onerror=ev=>{ u.onend();
+        // Si una voz en línea falla (sin internet), se cambia a la mejor voz instalada y se repite.
+        if(!opt._retry&&voice&&!voice.localService&&id===sayId){ const lv=bestLocal(); if(lv&&lv!==voice){ voice=lv; say(input,Object.assign({},opt,{_retry:true})); } } };
+      speechSynthesis.speak(u);
     }catch(e){} });
   },70);
 }
@@ -445,7 +453,7 @@ function fillVoiceUI(){
   const n=voice?voice.name.toLowerCase():'';
   $('#vHint').textContent=!('speechSynthesis' in window)?'Este navegador no puede leer en voz alta.':
     !voices.length?'No hay voces en español instaladas. En Android: Ajustes › Sistema › Idioma › Salida de texto a voz › instalar los datos de voz en español.':
-    scoreVoice(voice)>=15?'Buena elección: es una de las voces más naturales de este equipo.':'Si suena robótica, prueben otra voz de la lista o abran la app en Chrome o Edge.';
+    scoreVoice(voice)>=19?'Buena elección: es una voz natural'+(voice.localService?'.':'. Necesita internet; sin conexión se usa la mejor voz instalada.'):'Si suena robótica, prueben otra voz de la lista o abran la app en Chrome o Edge.';
   $$('.seg button').forEach(b=>b.setAttribute('aria-pressed',String(parseFloat(b.dataset.rate)===S.rate)));
   $('#vChars').checked=S.chars; $('#vSfx').checked=S.sfx;
 }
