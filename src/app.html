@@ -152,12 +152,13 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
 </header>
 <div id="voicePanel" role="dialog" aria-label="Ajustes de voz" hidden>
   <h3>🔊 Ajustes de voz</h3>
-  <label class="lbl" for="vSel">Voz del equipo</label>
+  <label class="lbl" for="vSel">Voz del equipo (para frases sin grabación)</label>
   <select id="vSel"></select>
   <p class="tiny" id="vHint"></p>
   <div class="lbl">Velocidad</div>
   <div class="seg" role="group" aria-label="Velocidad"><button data-rate=".8">🐢 Lenta</button><button data-rate="1">Normal</button><button data-rate="1.15">🐇 Rápida</button></div>
-  <label class="chk"><input type="checkbox" id="vChars"> Voces de personajes: el Sol, la Tierra y la Luna hablan con su propio tono</label>
+  <label class="chk"><input type="checkbox" id="vRec"> Voces grabadas de los personajes (más naturales, funcionan sin internet)</label>
+  <label class="chk"><input type="checkbox" id="vChars"> Si no hay grabación: cambiar el tono de la voz del equipo según el personaje</label>
   <label class="chk"><input type="checkbox" id="vSfx"> Efectos de sonido</label>
   <div class="row"><button id="vTest" class="primary">▶ Probar</button><button id="vClose">Cerrar</button></div>
 </div>
@@ -285,7 +286,7 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
 
       <h3>Accesibilidad e inclusión</h3>
       <ul>
-        <li><b>🔊 Voz con personajes:</b> el Sol, la Tierra y la Luna hablan en primera persona, cada uno con su propio tono, y una voz guía lee las preguntas. Cada oración y cada opción de respuesta se resalta mientras suena, para que los niños sigan la lectura. Usa las voces en español del propio equipo, así que funciona sin internet si el celular ya tiene una instalada. En <b>⚙️ Ajustes</b> se elige la voz más natural del equipo y la velocidad (lenta, normal o rápida), y se pueden apagar los personajes o los efectos de sonido.</li>
+        <li><b>🔊 Voz con personajes:</b> el Sol, la Tierra y la Luna hablan en primera persona con voces grabadas y expresivas (generadas con ElevenLabs), y una voz guía lee las preguntas. Las grabaciones van dentro del archivo, así que suenan igual en todos los equipos y sin internet. Cada oración y cada opción de respuesta se resalta mientras suena, para que los niños sigan la lectura. Usa las voces en español del propio equipo, así que funciona sin internet si el celular ya tiene una instalada. En <b>⚙️ Ajustes</b> se elige la voz más natural del equipo y la velocidad (lenta, normal o rápida), y se pueden apagar los personajes o los efectos de sonido.</li>
         <li><b>A− / A+</b> para el tamaño de letra, <b>◐ Contraste</b> para baja visión y <b>⏸ Quieto</b> para quienes se distraen o se marean con el movimiento. La app respeta la opción del sistema «reducir movimiento».</li>
         <li>Todo lo que se hace tocando la escena 3D también se puede hacer con <b>botones grandes</b> (mínimo 48 px), con teclado y con lector de pantalla.</li>
         <li><b>Lectura fácil:</b> frases cortas, una idea por oración y apoyo con pictogramas (emojis).</li>
@@ -318,7 +319,7 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
         <li>Observaciones de accesibilidad: quién necesitó voz, contraste o 2D, sin identificar al estudiante.</li>
         <li>Lista de ajustes hechos al prototipo después de la aplicación.</li>
       </ul>
-      <footer class="credit">Prototipo educativo de libre uso · Hecho con Three.js (licencia MIT), incluido dentro del mismo archivo · Programado con asistencia de IA (Claude) · Equipo: José Andrés Ureta Granda y equipo docente en formación.</footer>
+      <footer class="credit">Prototipo educativo de libre uso · Hecho con Three.js (licencia MIT), incluido dentro del mismo archivo · Voces de los personajes generadas con ElevenLabs (elevenlabs.io), con voces de su biblioteca · Programado con asistencia de IA (Claude) · Equipo: José Andrés Ureta Granda y equipo docente en formación.</footer>
     </div>
   </aside>
 </main>
@@ -330,10 +331,10 @@ body.hc .pick button[aria-pressed="true"]{background:#333}
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const TAU=Math.PI*2, D2R=Math.PI/180;
-const S={mode:'explorar',speak:true,reduce:false,lite:false,hc:false,fs:18,paused:false,view2d:false,rate:1,chars:true,sfx:true,voiceName:''};
+const S={mode:'explorar',speak:true,reduce:false,lite:false,hc:false,fs:18,paused:false,view2d:false,rate:1,chars:true,sfx:true,voiceName:'',rec:true};
 try{ S.reduce=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
 try{ const p=JSON.parse(localStorage.getItem('stl_prefs')||'{}'); Object.assign(S,p); }catch(e){}
-function savePrefs(){ try{ localStorage.setItem('stl_prefs',JSON.stringify({speak:S.speak,reduce:S.reduce,lite:S.lite,hc:S.hc,fs:S.fs,rate:S.rate,chars:S.chars,sfx:S.sfx,voiceName:S.voiceName})); }catch(e){} }
+function savePrefs(){ try{ localStorage.setItem('stl_prefs',JSON.stringify({speak:S.speak,reduce:S.reduce,lite:S.lite,hc:S.hc,fs:S.fs,rate:S.rate,chars:S.chars,sfx:S.sfx,voiceName:S.voiceName,rec:S.rec})); }catch(e){} }
 
 /* ---------- VOZ ---------- */
 // Cada personaje habla con su propio tono y ritmo usando la voz en español del equipo (sin internet).
@@ -354,37 +355,60 @@ if('speechSynthesis' in window){ loadVoices(); try{ speechSynthesis.addEventList
 function clean(t){ return t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{2190}-\u{21FF}\u{2B50}\u{200D}]/gu,'').replace(/\s+/g,' ').trim(); }
 function splitSent(t){ return (t.match(/[^.!?…]+[.!?…]*\s*/g)||[t]).map(x=>x.trim()).filter(Boolean); }
 let sayId=0;
+/* Narración grabada con ElevenLabs (voces de personajes). Se usa cuando existe la frase grabada;
+   si no, se lee con la voz del dispositivo. CLIPS: "personaje|texto" → audio. */
+const CLIPS=/*CLIPS*/{};
+const SILENT=/*SILENT*/'';
+function clipKey(who,t){ return who+'|'+clean(t); }
+const AU=new Audio(); AU.preload='auto';
+let auUnlocked=false;
+function unlockAudio(){ if(auUnlocked) return; auUnlocked=true; try{ AU.src=SILENT; AU.play().then(()=>AU.pause()).catch(()=>{}); }catch(e){} }
+document.addEventListener('pointerdown',unlockAudio,{capture:true,once:true});
+document.addEventListener('keydown',unlockAudio,{capture:true,once:true});
 /* say(texto | [{text, who, hl}], {el, force})
    - who: guia | sol | tierra | luna  → voz del personaje
-   - el: el texto se pinta ahí, oración por oración, y se resalta mientras suena
+   - el: el texto se pinta ahí y se resalta mientras suena
    - hl: un elemento propio (por ejemplo, un botón de respuesta) que se resalta mientras suena */
 function say(input,opt){
   opt=(opt===true)?{force:true}:(opt||{});
   const segs=Array.isArray(input)?input:[{text:input,who:opt.who}];
   const items=[];
-  segs.forEach(seg=>{ splitSent(seg.text).forEach(raw=>items.push({raw,spoken:clean(raw),who:seg.who||'guia',hl:seg.hl||null})); });
+  segs.forEach(seg=>{ const who=seg.who||'guia';
+    const whole=S.rec&&CLIPS[clipKey(who,seg.text)];
+    if(whole){ items.push({raw:seg.text.trim(),spoken:clean(seg.text),who,hl:seg.hl||null,clip:whole}); return; }
+    splitSent(seg.text).forEach(raw=>items.push({raw,spoken:clean(raw),who,hl:seg.hl||null,clip:S.rec?CLIPS[clipKey(who,raw)]:null})); });
   if(opt.el){ opt.el.innerHTML=''; items.forEach(it=>{ if(it.hl) return; const sp=document.createElement('span'); sp.className='sent'; sp.textContent=it.raw+' '; opt.el.appendChild(sp); it.hl=sp; }); }
   $('#live').textContent=items.map(i=>i.spoken).join(' ');
-  const id=++sayId; clearHL();
-  if(!(S.speak||opt.force)||!('speechSynthesis' in window)) return;
-  try{ speechSynthesis.cancel(); }catch(e){}
-  const speakable=items.filter(it=>/[a-záéíóúñü0-9]/i.test(it.spoken));
-  setTimeout(()=>{ if(id!==sayId) return;
-    speakable.forEach((it,i)=>{ try{
-      const u=new SpeechSynthesisUtterance(it.spoken); const pr=(S.chars&&VOICES[it.who])||VOICES.guia;
-      if(voice){ u.voice=voice; u.lang=voice.lang; } else u.lang='es-419';
-      u.rate=Math.max(.5,Math.min(1.6,pr.rate*S.rate)); u.pitch=pr.pitch; u.volume=1;
-      u.onstart=()=>{ if(id!==sayId) return; clearHL(); if(it.hl) it.hl.classList.add('reading'); };
-      u.onend=()=>{ if(id===sayId&&i===speakable.length-1) clearHL(); };
-      u.onerror=ev=>{ u.onend();
-        // Si una voz en línea falla (sin internet), se cambia a la mejor voz instalada y se repite.
-        if(!opt._retry&&voice&&!voice.localService&&id===sayId){ const lv=bestLocal(); if(lv&&lv!==voice){ voice=lv; say(input,Object.assign({},opt,{_retry:true})); } } };
-      speechSynthesis.speak(u);
-    }catch(e){} });
-  },70);
+  const id=++sayId; clearHL(); stopPlayback();
+  if(!(S.speak||opt.force)) return;
+  const queue=items.filter(it=>/[a-záéíóúñü0-9]/i.test(it.spoken));
+  let i=0;
+  const next=()=>{ if(id!==sayId) return; if(i>=queue.length){ clearHL(); return; } const it=queue[i++]; clearHL(); if(it.hl) it.hl.classList.add('reading'); it.clip?playClip(it,id,next):speakTTS(it,id,next,opt,input); };
+  setTimeout(next,60);
+}
+function stopPlayback(){ try{ AU.pause(); }catch(e){} try{ speechSynthesis.cancel(); }catch(e){} }
+function playClip(it,id,done){
+  let finished=false; const fin=()=>{ if(finished) return; finished=true; AU.onended=AU.onerror=null; if(id===sayId) done(); };
+  try{ AU.onended=fin; AU.onerror=()=>{ finished=true; speakTTS(it,id,done); };
+    AU.src=it.clip; AU.playbackRate=S.rate; try{ AU.preservesPitch=true; }catch(e){}
+    const p=AU.play(); if(p&&p.catch) p.catch(()=>{ if(!finished){ finished=true; speakTTS(it,id,done); } });
+  }catch(e){ speakTTS(it,id,done); }
+}
+function speakTTS(it,id,done,opt,input){
+  if(!('speechSynthesis' in window)){ setTimeout(done,300); return; }
+  try{
+    const u=new SpeechSynthesisUtterance(it.spoken); const pr=(S.chars&&VOICES[it.who])||VOICES.guia;
+    if(voice){ u.voice=voice; u.lang=voice.lang; } else u.lang='es-419';
+    u.rate=Math.max(.5,Math.min(1.6,pr.rate*S.rate)); u.pitch=pr.pitch; u.volume=1;
+    u.onend=()=>{ if(id===sayId) done(); };
+    u.onerror=()=>{ // Si una voz en línea falla (sin internet), se cambia a la mejor voz instalada.
+      if(voice&&!voice.localService){ const lv=bestLocal(); if(lv&&lv!==voice){ voice=lv; if(id===sayId) speakTTS(it,id,done); return; } }
+      if(id===sayId) done(); };
+    speechSynthesis.speak(u);
+  }catch(e){ done(); }
 }
 function clearHL(){ $$('.reading').forEach(x=>x.classList.remove('reading')); }
-function stopVoice(){ sayId++; clearHL(); try{ speechSynthesis.cancel(); }catch(e){} }
+function stopVoice(){ sayId++; clearHL(); stopPlayback(); }
 function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 
 /* ---------- EFECTOS DE SONIDO (sintetizados, no se descargan) ---------- */
@@ -455,13 +479,14 @@ function fillVoiceUI(){
     !voices.length?'No hay voces en español instaladas. En Android: Ajustes › Sistema › Idioma › Salida de texto a voz › instalar los datos de voz en español.':
     scoreVoice(voice)>=19?'Buena elección: es una voz natural'+(voice.localService?'.':'. Necesita internet; sin conexión se usa la mejor voz instalada.'):'Si suena robótica, prueben otra voz de la lista o abran la app en Chrome o Edge.';
   $$('.seg button').forEach(b=>b.setAttribute('aria-pressed',String(parseFloat(b.dataset.rate)===S.rate)));
-  $('#vChars').checked=S.chars; $('#vSfx').checked=S.sfx;
+  $('#vChars').checked=S.chars; $('#vSfx').checked=S.sfx; $('#vRec').checked=S.rec;
 }
 $('#bVoiceCfg').onclick=()=>{ const p=$('#voicePanel'); p.hidden=!p.hidden; $('#bVoiceCfg').setAttribute('aria-expanded',String(!p.hidden)); if(!p.hidden){ loadVoices(); $('#vSel').focus(); } };
 $('#vClose').onclick=()=>{ $('#voicePanel').hidden=true; $('#bVoiceCfg').setAttribute('aria-expanded','false'); $('#bVoiceCfg').focus(); };
 $('#vSel').onchange=e=>{ S.voiceName=e.target.value; voice=voices.find(v=>v.name===S.voiceName)||voice; savePrefs(); fillVoiceUI(); };
 $$('.seg button').forEach(b=>b.onclick=()=>{ S.rate=parseFloat(b.dataset.rate); savePrefs(); fillVoiceUI(); });
 $('#vChars').onchange=e=>{ S.chars=e.target.checked; savePrefs(); };
+$('#vRec').onchange=e=>{ S.rec=e.target.checked; savePrefs(); };
 $('#vSfx').onchange=e=>{ S.sfx=e.target.checked; savePrefs(); if(S.sfx) SFX.tap(); };
 $('#vTest').onclick=()=>{ SFX.ding(); say([{text:'¡Hola! Soy el Sol.',who:'sol'},{text:'Yo soy la Tierra.',who:'tierra'},{text:'¡Y yo soy la Luna! Vamos a aprender juntos.',who:'luna'}],{force:true}); };
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('#voicePanel').hidden) $('#vClose').click(); });
@@ -620,7 +645,7 @@ function setHour(h,silent){
   $('#dnRoutine').textContent=routine(hh);
   const sl=$('#dnSlider'); if(document.activeElement!==sl) sl.value=hh.toFixed(2);
   drawSky(hh); if(S.view2d||!R) draw2D(hh); else if(S.mode==='dianoche') draw2D(hh,true);
-  if(!silent && st!==DN.lastSt){ DN.lastSt=st; if(!DN.auto&&!DN.anim) say('En Quito es '+map[st][1]+'.'); }
+  if(!silent && st!==DN.lastSt){ DN.lastSt=st; if(!DN.auto&&!DN.anim) say({dia:'En Quito es de día.',noche:'En Quito es de noche.',amanecer:'En Quito está amaneciendo.',atardecer:'En Quito está atardeciendo.'}[st]); }
   DN.lastSt=st;
 }
 function drawSky(h){
@@ -665,7 +690,7 @@ $('#poeStart').onclick=()=>{
   const start=(dayState(DN.hour)==='dia'||dayState(DN.hour)==='amanecer')?13:22; DN.auto=false; updPlay(); setHour(start,true);
   const turn=Math.random()<.5?12:24; DN.poe={turn,start};
   const now=dayState(start)==='dia'?'de día':'de noche';
-  const txt='Ahora en Quito es '+now+'. La Tierra va a dar '+(turn===12?'media vuelta':'una vuelta completa')+'. ¿Qué habrá en Quito: día o noche?';
+  const txt=[{text:'Ahora en Quito es '+now+'.'},{text:'La Tierra va a dar '+(turn===12?'media vuelta':'una vuelta completa')+'.'},{text:'¿Qué habrá en Quito: día o noche?'}];
   $('#poeR').textContent=''; $('#poeOpts').hidden=false; $('#poeStart').hidden=true; say(txt,{el:$('#poeQ')});
 };
 $$('#poeOpts button').forEach(b=>b.onclick=()=>{
@@ -676,7 +701,7 @@ $$('#poeOpts button').forEach(b=>b.onclick=()=>{
 function finishPoe(){
   const p=DN.poe; if(!p) return; const res=dayState(p.start+p.turn)==='dia'?'dia':'noche'; const ok=p.guess===res;
   const exp=p.turn===12?'Con media vuelta, Quito pasó al otro lado: el lado que '+(res==='noche'?'no mira':'mira')+' al Sol.':'Con una vuelta completa, Quito volvió al mismo lugar. ¡Una vuelta completa es un día entero!';
-  const txt=(ok?'✅ '+pick(['¡Tu predicción se cumplió!','¡Lo adivinaste!','¡Muy bien pensado!'])+' ':'🤔 Pasó algo diferente a lo que predijiste. ')+'Ahora es '+(res==='dia'?'de día':'de noche')+'. '+exp+' ¿Cómo se lo explicarías a un compañero?';
+  const txt=[{text:ok?'✅ '+pick(['¡Tu predicción se cumplió!','¡Lo adivinaste!','¡Muy bien pensado!']):'🤔 Pasó algo diferente a lo que predijiste.'},{text:'Ahora es '+(res==='dia'?'de día':'de noche')+'.'},{text:exp},{text:'¿Cómo se lo explicarías a un compañero?'}];
   ok?SFX.ok():SFX.retry(); say(txt,{el:$('#poeR')}); $('#poeStart').hidden=false; $('#poeStart').textContent='Predecir otra vez'; DN.poe=null;
 }
 
@@ -697,13 +722,13 @@ function showQ(){
   dots(); readQ(d);
 }
 function readQ(d,force){ // pregunta y opciones, resaltando cada botón mientras se nombra
-  const n=Q.shown.length; const opts=Q.shown.map((x,i)=>({text:(i===n-1?'¿O ':'¿')+x.o[1]+'?',who:'guia',hl:x.b}));
+  const opts=Q.shown.map(x=>({text:'¿'+x.o[1]+'?',who:'guia',hl:x.b}));
   say([{text:d.q,who:'guia'}].concat(opts),{el:$('#qText'),force:!!force});
 }
 function answer(b,d){
   if(Q.ans.length>Q.i) return; const ok=b.dataset.ok==='1'; Q.ans.push(ok);
   $$('#qOpts button').forEach(x=>{ x.disabled=true; if(x.dataset.ok==='1') x.classList.add('ok'); }); if(!ok) b.classList.add('no');
-  const txt=(ok?'✅ '+pick(PRAISE)+' ':'💡 '+pick(RETRY)+' ')+d.e; ok?SFX.ok():SFX.retry(); say(txt,{el:$('#qFeed')}); $('#qNext').hidden=false; dots();
+  ok?SFX.ok():SFX.retry(); say([{text:(ok?'✅ '+pick(PRAISE):'💡 '+pick(RETRY))},{text:d.e}],{el:$('#qFeed')}); $('#qNext').hidden=false; dots();
 }
 function dots(){ $('#qDots').innerHTML=QUIZ.map((_,i)=>'<i class="'+(i<Q.ans.length?(Q.ans[i]?'ok':'no'):(i===Q.i?'on':''))+'"></i>').join(''); }
 $('#qNext').onclick=()=>{ if(Q.i>=QUIZ.length){ startQuiz(); return; } Q.i++; showQ(); };

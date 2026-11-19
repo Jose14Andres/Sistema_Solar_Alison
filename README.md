@@ -2,7 +2,7 @@
 
 Prototipo educativo de realidad virtual y aumentada para Ciencias Naturales (subnivel Elemental, 3.º de EGB). Su objetivo es que los estudiantes expliquen que el día y la noche ocurren porque la Tierra gira sobre sí misma frente al Sol, y que comparen el Sol, la Tierra y la Luna por su forma, su tamaño y su movimiento.
 
-Todo funciona desde un solo archivo, `index.html`, de unos 656 KB. No necesita internet, ni cuentas, ni instalar nada.
+Todo funciona desde un solo archivo, `index.html`, de unos 3,3 MB (incluye la narración grabada). No necesita internet, ni cuentas, ni instalar nada.
 
 ## Actividades
 
@@ -22,6 +22,7 @@ Todo funciona desde un solo archivo, `index.html`, de unos 656 KB. No necesita i
 
 ## Accesibilidad y baja conectividad
 
+- Voces grabadas de personajes (ElevenLabs, modelo eleven_v4): el Sol (voz JosePlan), la Tierra (Natalia), la Luna (Lulu) y una voz guía (Betty) narran 90 frases con entonación expresiva. Van dentro de `index.html`, así que suenan igual en cualquier equipo y sin internet. Las frases sin grabación usan la voz del dispositivo como respaldo.
 - Voz con personajes: el Sol, la Tierra y la Luna hablan en primera persona, cada uno con su tono, y una voz guía lee las preguntas. Cada oración y cada opción se resalta mientras suena. En ⚙️ Ajustes se elige la voz del equipo y la velocidad, y se pueden apagar los personajes y los efectos de sonido. Usa las voces del dispositivo (Web Speech API), así que funciona sin internet.
 - Efectos de sonido sintetizados en el navegador (Web Audio), sin archivos de audio.
 - Tamaño de letra, alto contraste y opción para detener el movimiento. Respeta la preferencia «reducir movimiento» del sistema.
@@ -37,7 +38,7 @@ Todo funciona desde un solo archivo, `index.html`, de unos 656 KB. No necesita i
 
 ## Desarrollo
 
-`src/app.html` es el código fuente. Para regenerar `index.html` con Three.js incluido dentro del archivo:
+`src/app.html` es el código fuente. `audio/` guarda cada frase grabada y `audio/manifest.json` dice qué texto dice cada archivo y qué personaje lo dice. Para regenerar `index.html` con Three.js incluido dentro del archivo:
 
 ```bash
 npm install three@0.149.0
@@ -47,4 +48,5 @@ python3 build.py
 ## Créditos y licencias
 
 - Equipo: José Andrés Ureta Granda y equipo docente en formación.
+- Voces generadas con [ElevenLabs](https://elevenlabs.io) (plan gratuito, uso educativo no comercial con atribución).
 - [Three.js](https://threejs.org) r149, licencia MIT, © 2010-2023 Three.js Authors. Va incluido dentro de `index.html` junto con su aviso de licencia.

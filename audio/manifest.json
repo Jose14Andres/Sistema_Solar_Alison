@@ -1,0 +1,551 @@
+{
+ "generator": "ElevenLabs, modelo eleven_v4",
+ "voices": {
+  "sol": "JosePlan",
+  "tierra": "Natalia (Doblaje versátil)",
+  "luna": "Lulu (Adorable, Bright & Playful)",
+  "guia": "Betty (Quirky, Cartoonish & Warm)"
+ },
+ "clips": [
+  {
+   "id": "sol01",
+   "who": "sol",
+   "text": "¡Hola, hola! Soy el Sol.",
+   "file": "audio/sol01.mp3"
+  },
+  {
+   "id": "sol02",
+   "who": "sol",
+   "text": "Soy una estrella. ¡Soy una bola gigante de gas, muy, muy caliente!",
+   "file": "audio/sol02.mp3"
+  },
+  {
+   "id": "sol03",
+   "who": "sol",
+   "text": "Yo le doy luz y calor a la Tierra. Sin mí, las plantas no podrían crecer.",
+   "file": "audio/sol03.mp3"
+  },
+  {
+   "id": "sol04",
+   "who": "sol",
+   "text": "Soy enorme. Si yo fuera una pelota de básquet, la Tierra sería chiquita, como un grano de quinua.",
+   "file": "audio/sol04.mp3"
+  },
+  {
+   "id": "sol05",
+   "who": "sol",
+   "text": "¡Cuidado! Nunca me mires directamente, porque puedo dañar tus ojos.",
+   "file": "audio/sol05.mp3"
+  },
+  {
+   "id": "sol06",
+   "who": "sol",
+   "text": "¡Hola! Soy el Sol.",
+   "file": "audio/sol06.mp3"
+  },
+  {
+   "id": "sol07",
+   "who": "sol",
+   "text": "¡Hola! Ya puedo hablar.",
+   "file": "audio/sol07.mp3"
+  },
+  {
+   "id": "sol08",
+   "who": "sol",
+   "text": "¡Y ahora ya saben por qué hay día y noche!",
+   "file": "audio/sol08.mp3"
+  },
+  {
+   "id": "tierra01",
+   "who": "tierra",
+   "text": "¡Hola! Soy la Tierra, tu planeta.",
+   "file": "audio/tierra01.mp3"
+  },
+  {
+   "id": "tierra02",
+   "who": "tierra",
+   "text": "Aquí vives tú, junto con muchas personas, animales y plantas.",
+   "file": "audio/tierra02.mp3"
+  },
+  {
+   "id": "tierra03",
+   "who": "tierra",
+   "text": "Tengo forma de esfera, como una pelota. Tengo agua, tierra y aire.",
+   "file": "audio/tierra03.mp3"
+  },
+  {
+   "id": "tierra04",
+   "who": "tierra",
+   "text": "Doy vueltas sobre mí misma, como un trompo. Una vuelta completa dura un día. ¡Por eso hay día y noche!",
+   "file": "audio/tierra04.mp3"
+  },
+  {
+   "id": "tierra05",
+   "who": "tierra",
+   "text": "También viajo alrededor del Sol. Para dar una vuelta completa me demoro un año entero.",
+   "file": "audio/tierra05.mp3"
+  },
+  {
+   "id": "tierra06",
+   "who": "tierra",
+   "text": "Ecuador está en mi mitad, en la línea equinoccial. ¿Ves el punto rojo? ¡Ahí está Quito!",
+   "file": "audio/tierra06.mp3"
+  },
+  {
+   "id": "tierra07",
+   "who": "tierra",
+   "text": "Yo soy la Tierra.",
+   "file": "audio/tierra07.mp3"
+  },
+  {
+   "id": "tierra08",
+   "who": "tierra",
+   "text": "¡Mírame girar! Fíjate en Quito.",
+   "file": "audio/tierra08.mp3"
+  },
+  {
+   "id": "tierra09",
+   "who": "tierra",
+   "text": "¡Allá voy! Observa bien.",
+   "file": "audio/tierra09.mp3"
+  },
+  {
+   "id": "luna01",
+   "who": "luna",
+   "text": "¡Hola! Soy la Luna.",
+   "file": "audio/luna01.mp3"
+  },
+  {
+   "id": "luna02",
+   "who": "luna",
+   "text": "Soy el satélite de la Tierra. Doy vueltas a su alrededor, como si jugáramos a perseguirnos.",
+   "file": "audio/luna02.mp3"
+  },
+  {
+   "id": "luna03",
+   "who": "luna",
+   "text": "No tengo luz propia. Brillo porque reflejo la luz del Sol, como un espejo.",
+   "file": "audio/luna03.mp3"
+  },
+  {
+   "id": "luna04",
+   "who": "luna",
+   "text": "Soy más pequeña que la Tierra. Tengo muchos huecos redondos llamados cráteres.",
+   "file": "audio/luna04.mp3"
+  },
+  {
+   "id": "luna05",
+   "who": "luna",
+   "text": "A veces me puedes ver de día. ¡Búscame en el cielo con tu familia!",
+   "file": "audio/luna05.mp3"
+  },
+  {
+   "id": "luna06",
+   "who": "luna",
+   "text": "¡Y yo soy la Luna! Vamos a aprender juntos.",
+   "file": "audio/luna06.mp3"
+  },
+  {
+   "id": "guia01",
+   "who": "guia",
+   "text": "¿Cuál de estos astros es una estrella?",
+   "file": "audio/guia01.mp3"
+  },
+  {
+   "id": "guia02",
+   "who": "guia",
+   "text": "¿Quién le da luz y calor a la Tierra?",
+   "file": "audio/guia02.mp3"
+  },
+  {
+   "id": "guia03",
+   "who": "guia",
+   "text": "¿Por qué hay día y noche?",
+   "file": "audio/guia03.mp3"
+  },
+  {
+   "id": "guia04",
+   "who": "guia",
+   "text": "¿Qué astro da vueltas alrededor de la Tierra?",
+   "file": "audio/guia04.mp3"
+  },
+  {
+   "id": "guia05",
+   "who": "guia",
+   "text": "¿Cuál es el más grande?",
+   "file": "audio/guia05.mp3"
+  },
+  {
+   "id": "guia06",
+   "who": "guia",
+   "text": "¿Por qué brilla la Luna?",
+   "file": "audio/guia06.mp3"
+  },
+  {
+   "id": "guia07",
+   "who": "guia",
+   "text": "¿El Sol?",
+   "file": "audio/guia07.mp3"
+  },
+  {
+   "id": "guia08",
+   "who": "guia",
+   "text": "¿La Tierra?",
+   "file": "audio/guia08.mp3"
+  },
+  {
+   "id": "guia09",
+   "who": "guia",
+   "text": "¿La Luna?",
+   "file": "audio/guia09.mp3"
+  },
+  {
+   "id": "guia10",
+   "who": "guia",
+   "text": "¿Las nubes?",
+   "file": "audio/guia10.mp3"
+  },
+  {
+   "id": "guia11",
+   "who": "guia",
+   "text": "¿Porque la Tierra gira sobre sí misma?",
+   "file": "audio/guia11.mp3"
+  },
+  {
+   "id": "guia12",
+   "who": "guia",
+   "text": "¿Porque el Sol se apaga en la noche?",
+   "file": "audio/guia12.mp3"
+  },
+  {
+   "id": "guia13",
+   "who": "guia",
+   "text": "¿Porque el Sol se esconde detrás de las montañas?",
+   "file": "audio/guia13.mp3"
+  },
+  {
+   "id": "guia14",
+   "who": "guia",
+   "text": "¿Las estrellas?",
+   "file": "audio/guia14.mp3"
+  },
+  {
+   "id": "guia15",
+   "who": "guia",
+   "text": "¿Porque refleja la luz del Sol?",
+   "file": "audio/guia15.mp3"
+  },
+  {
+   "id": "guia16",
+   "who": "guia",
+   "text": "¿Porque tiene fuego?",
+   "file": "audio/guia16.mp3"
+  },
+  {
+   "id": "guia17",
+   "who": "guia",
+   "text": "¿Porque tiene focos?",
+   "file": "audio/guia17.mp3"
+  },
+  {
+   "id": "guia18",
+   "who": "guia",
+   "text": "¡Correcto!",
+   "file": "audio/guia18.mp3"
+  },
+  {
+   "id": "guia19",
+   "who": "guia",
+   "text": "¡Muy bien!",
+   "file": "audio/guia19.mp3"
+  },
+  {
+   "id": "guia20",
+   "who": "guia",
+   "text": "¡Excelente!",
+   "file": "audio/guia20.mp3"
+  },
+  {
+   "id": "guia21",
+   "who": "guia",
+   "text": "¡Así se hace!",
+   "file": "audio/guia21.mp3"
+  },
+  {
+   "id": "guia22",
+   "who": "guia",
+   "text": "¡Bravo!",
+   "file": "audio/guia22.mp3"
+  },
+  {
+   "id": "guia23",
+   "who": "guia",
+   "text": "¡Casi!",
+   "file": "audio/guia23.mp3"
+  },
+  {
+   "id": "guia24",
+   "who": "guia",
+   "text": "Buen intento.",
+   "file": "audio/guia24.mp3"
+  },
+  {
+   "id": "guia25",
+   "who": "guia",
+   "text": "¡Sigue intentando!",
+   "file": "audio/guia25.mp3"
+  },
+  {
+   "id": "guia26",
+   "who": "guia",
+   "text": "Uy, esta vez no.",
+   "file": "audio/guia26.mp3"
+  },
+  {
+   "id": "guia27",
+   "who": "guia",
+   "text": "El Sol es una estrella: tiene luz propia y nos da calor.",
+   "file": "audio/guia27.mp3"
+  },
+  {
+   "id": "guia28",
+   "who": "guia",
+   "text": "La luz y el calor vienen del Sol.",
+   "file": "audio/guia28.mp3"
+  },
+  {
+   "id": "guia29",
+   "who": "guia",
+   "text": "El Sol nunca se apaga. La Tierra gira: la mitad que mira al Sol tiene día y la otra mitad tiene noche.",
+   "file": "audio/guia29.mp3"
+  },
+  {
+   "id": "guia30",
+   "who": "guia",
+   "text": "La Luna es el satélite de la Tierra y gira a su alrededor.",
+   "file": "audio/guia30.mp3"
+  },
+  {
+   "id": "guia31",
+   "who": "guia",
+   "text": "El Sol es el más grande, luego la Tierra y después la Luna. Se ve pequeño porque está muy lejos.",
+   "file": "audio/guia31.mp3"
+  },
+  {
+   "id": "guia32",
+   "who": "guia",
+   "text": "La Luna no tiene luz propia: refleja la luz del Sol.",
+   "file": "audio/guia32.mp3"
+  },
+  {
+   "id": "guia33",
+   "who": "guia",
+   "text": "En Quito es de día.",
+   "file": "audio/guia33.mp3"
+  },
+  {
+   "id": "guia34",
+   "who": "guia",
+   "text": "En Quito es de noche.",
+   "file": "audio/guia34.mp3"
+  },
+  {
+   "id": "guia35",
+   "who": "guia",
+   "text": "En Quito está amaneciendo.",
+   "file": "audio/guia35.mp3"
+  },
+  {
+   "id": "guia36",
+   "who": "guia",
+   "text": "En Quito está atardeciendo.",
+   "file": "audio/guia36.mp3"
+  },
+  {
+   "id": "guia37",
+   "who": "guia",
+   "text": "Pausa.",
+   "file": "audio/guia37.mp3"
+  },
+  {
+   "id": "guia38",
+   "who": "guia",
+   "text": "Ahora en Quito es de día.",
+   "file": "audio/guia38.mp3"
+  },
+  {
+   "id": "guia39",
+   "who": "guia",
+   "text": "Ahora en Quito es de noche.",
+   "file": "audio/guia39.mp3"
+  },
+  {
+   "id": "guia40",
+   "who": "guia",
+   "text": "La Tierra va a dar media vuelta.",
+   "file": "audio/guia40.mp3"
+  },
+  {
+   "id": "guia41",
+   "who": "guia",
+   "text": "La Tierra va a dar una vuelta completa.",
+   "file": "audio/guia41.mp3"
+  },
+  {
+   "id": "guia42",
+   "who": "guia",
+   "text": "¿Qué habrá en Quito: día o noche?",
+   "file": "audio/guia42.mp3"
+  },
+  {
+   "id": "guia43",
+   "who": "guia",
+   "text": "¡Tu predicción se cumplió!",
+   "file": "audio/guia43.mp3"
+  },
+  {
+   "id": "guia44",
+   "who": "guia",
+   "text": "¡Lo adivinaste!",
+   "file": "audio/guia44.mp3"
+  },
+  {
+   "id": "guia45",
+   "who": "guia",
+   "text": "¡Muy bien pensado!",
+   "file": "audio/guia45.mp3"
+  },
+  {
+   "id": "guia46",
+   "who": "guia",
+   "text": "Pasó algo diferente a lo que predijiste.",
+   "file": "audio/guia46.mp3"
+  },
+  {
+   "id": "guia47",
+   "who": "guia",
+   "text": "Ahora es de día.",
+   "file": "audio/guia47.mp3"
+  },
+  {
+   "id": "guia48",
+   "who": "guia",
+   "text": "Ahora es de noche.",
+   "file": "audio/guia48.mp3"
+  },
+  {
+   "id": "guia49",
+   "who": "guia",
+   "text": "Con media vuelta, Quito pasó al otro lado: el lado que no mira al Sol.",
+   "file": "audio/guia49.mp3"
+  },
+  {
+   "id": "guia50",
+   "who": "guia",
+   "text": "Con media vuelta, Quito pasó al otro lado: el lado que mira al Sol.",
+   "file": "audio/guia50.mp3"
+  },
+  {
+   "id": "guia51",
+   "who": "guia",
+   "text": "Con una vuelta completa, Quito volvió al mismo lugar. ¡Una vuelta completa es un día entero!",
+   "file": "audio/guia51.mp3"
+  },
+  {
+   "id": "guia52",
+   "who": "guia",
+   "text": "¿Cómo se lo explicarías a un compañero?",
+   "file": "audio/guia52.mp3"
+  },
+  {
+   "id": "guia53",
+   "who": "guia",
+   "text": "Respondieron bien 0 de 6.",
+   "file": "audio/guia53.mp3"
+  },
+  {
+   "id": "guia54",
+   "who": "guia",
+   "text": "Respondieron bien 1 de 6.",
+   "file": "audio/guia54.mp3"
+  },
+  {
+   "id": "guia55",
+   "who": "guia",
+   "text": "Respondieron bien 2 de 6.",
+   "file": "audio/guia55.mp3"
+  },
+  {
+   "id": "guia56",
+   "who": "guia",
+   "text": "Respondieron bien 3 de 6.",
+   "file": "audio/guia56.mp3"
+  },
+  {
+   "id": "guia57",
+   "who": "guia",
+   "text": "Respondieron bien 4 de 6.",
+   "file": "audio/guia57.mp3"
+  },
+  {
+   "id": "guia58",
+   "who": "guia",
+   "text": "Respondieron bien 5 de 6.",
+   "file": "audio/guia58.mp3"
+  },
+  {
+   "id": "guia59",
+   "who": "guia",
+   "text": "Respondieron bien 6 de 6.",
+   "file": "audio/guia59.mp3"
+  },
+  {
+   "id": "guia60",
+   "who": "guia",
+   "text": "Movimientos automáticos detenidos.",
+   "file": "audio/guia60.mp3"
+  },
+  {
+   "id": "guia61",
+   "who": "guia",
+   "text": "Movimientos activados.",
+   "file": "audio/guia61.mp3"
+  },
+  {
+   "id": "guia62",
+   "who": "guia",
+   "text": "Modo ligero activado.",
+   "file": "audio/guia62.mp3"
+  },
+  {
+   "id": "guia63",
+   "who": "guia",
+   "text": "Modo ligero desactivado.",
+   "file": "audio/guia63.mp3"
+  },
+  {
+   "id": "guia64",
+   "who": "guia",
+   "text": "Pon el celular en el visor. Mira un astro dos segundos para escuchar un dato.",
+   "file": "audio/guia64.mp3"
+  },
+  {
+   "id": "guia65",
+   "who": "guia",
+   "text": "Mueve el celular a tu alrededor. Mira un astro dos segundos para escuchar un dato.",
+   "file": "audio/guia65.mp3"
+  },
+  {
+   "id": "guia66",
+   "who": "guia",
+   "text": "Cámara lista. Toca un astro para escuchar un dato.",
+   "file": "audio/guia66.mp3"
+  },
+  {
+   "id": "guia67",
+   "who": "guia",
+   "text": "No se pudo abrir la cámara. Puedes usar una foto del aula.",
+   "file": "audio/guia67.mp3"
+  }
+ ]
+}
