@@ -17,7 +17,7 @@ Todo funciona desde un solo archivo, `index.html`, de unos 3,3 MB (incluye la na
 
 ## Cómo usarlo
 
-- **Sin internet:** copien `index.html` al celular (por USB, Bluetooth o WhatsApp) y ábranlo en Chrome.
+- **Con el archivo (para aulas sin internet):** antes de la clase, guarden `index.html` en el equipo (por USB o Bluetooth sin internet, o por WhatsApp, que sí usa internet para enviarlo). En el aula, ábranlo con Chrome o Edge: funciona sin wifi ni datos. El enlace web siempre necesita internet.
 - **En línea:** si GitHub Pages está activado en este repositorio, el enlace es `https://jose14andres.github.io/Sistema_Solar_Alison/`. Al ser HTTPS, ahí funcionan la cámara (RA) y los sensores de movimiento (RV).
 
 ## Accesibilidad y baja conectividad
