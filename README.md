@@ -47,6 +47,6 @@ python3 build.py
 
 ## Créditos y licencias
 
-- Equipo: José Andrés Ureta Granda y equipo docente en formación.
+- Autores: Alisson Anai Guerrero Rivera (docente en formación) y José Andrés Ureta Granda (desarrollo técnico).
 - Voces generadas con [ElevenLabs](https://elevenlabs.io) (plan gratuito, uso educativo no comercial con atribución).
 - [Three.js](https://threejs.org) r149, licencia MIT, © 2010-2023 Three.js Authors. Va incluido dentro de `index.html` junto con su aviso de licencia.
